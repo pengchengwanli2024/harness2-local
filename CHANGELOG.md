@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 — 2026-11-02
+
+- Add opt-in trusted synchronous UserPromptSubmit, PreToolUse, PostToolUse and Stop hooks.
+- Record automatic privacy-preserving intake; require native per-turn/project semantic receipts before business tools.
+- Deny experiment starts for skip goals, unbound/nested runs, stale/tampered receipts and incomplete reclassification.
+- Restrict preparation commands; verify candidate workspace ownership and preserve multi-project completion checks.
+- Add internal fail-closed lock deadlines and content-pinned runtime deployment with exact native trust review.
+- Preserve existing hook handlers, unrelated configuration and older run/closeout evidence.
+- Retain 0.3.0 run support and distinguish tool-path enforcement from an OS sandbox.
+
 ## 0.3.0 — 2026-11-02
 
 - Move lightweight task metadata and project locks into

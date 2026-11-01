@@ -3,7 +3,7 @@
 面向本地 Codex 的 Harness² 方法插件，提供一个工作流技能与七个本地 MCP
 工具，以及三个开工/失败跟踪工具。Python 3.11+，仅标准库，无 API Key、新模型服务或后台守护进程。
 
-v0.3 支持严格编辑范围下的全局开工自动评估：本机显式安装开工规则后，已有和新建项目都会
+v0.4 提供可显式安装的强制生命周期门禁；v0.3 支持严格编辑范围下的全局开工自动评估：本机显式安装开工规则后，已有和新建项目都会
 先定位项目、恢复同一目标身份，再调用 `h2_assess`。复杂任务或连续两轮实际
 实现验证失败时自动启动；简单任务执行正常开发，不创建四路实验。
 优先读取本项目、同领域、早于当前目标的验证经验；保留旧版 v0.1 经验兼容。
@@ -107,3 +107,18 @@ python3 /path/to/plugin/server/harness2_local.py --call h2_status < request.json
 在用户 config.toml 中只移除本服务段及其 tools 子段，保留其它配置原文。
 部分 Codex 版本的 mcp remove 会重写其它服务字段，不应盲目使用。
 卸载不会删除项目内实验记录；保留记录可审计，删除仅由用户另行决定。
+
+
+强制 hooks：先预览 `scripts/configure_forced_hooks.py --codex-bin /path/to/codex --evidence-dir /path/to/review`，
+审阅后对同一命令增加 `--apply --trust`。四项同步用户 hooks 覆盖 UserPromptSubmit、
+PreToolUse、PostToolUse、Stop；仅信任本插件四项，保留其他 handlers 与信任设置。
+引擎和门禁部署为哈希固定副本，启动时核对内容，源码更新须重新安装和信任新定义。
+
+开工 hook 实际记录 context/standard intake assessment，再要求当轮当项目的原生
+语义 context/assess 成功回执；未评估工具被拒，skip 任务不能启动四路实验。
+新目标与新turn不能借用旧回执，原失败与UNKNOWN不重放。复杂任务的启动前准备仅能
+写 `.harness2-preflight/<task_key>/`，再绑定 h2_start；简单任务不创建该目录。
+
+这不是 OS 安全沙箱。Codex部分专用/hosted路径不经过相同hooks，已有write_stdin会话
+不再次经过Pre；同步开工轻量评估覆盖模型继续执行前的记录。用户关闭hooks、宿主杀死进程
+或改变信任后的未加载状态不能声称仍受强制保护；需在新会话核对实际执行，而不只看配置。

@@ -128,6 +128,45 @@ python3 plugins/harness2-local/scripts/configure_session_gate.py \
 已有其它所有者的 `developer_instructions` 或歧义标记时拒绝覆盖。此步骤不改变工具审批。
 它是附加指令，仍受平台和用户授权约束，仍不是强制 hook；新对话需验证真实调用。
 
+## 强制开工门禁（v0.4，可选安装）
+
+v0.3 的 AGENTS/会话指令依赖模型遵循；v0.4 增加实际生命周期 hooks。
+先完成上面的原生 MCP 注册及已审阅工具授权，再预览四项门禁：
+
+```bash
+python3 plugins/harness2-local/scripts/configure_forced_hooks.py \
+  --codex-bin /path/to/desktop/codex --evidence-dir ./local-policy-review/forced-hooks
+```
+
+审阅自有脚本、哈希和候选后，对同一命令增加 `--apply --trust`。
+安装器通过实际 `hooks/list` 读取四个自有定义的 `currentHash`，只更新对应的
+`hooks.state.<key>.trusted_hash`，再次核验 trusted/enabled；不跳过 hook 信任。
+其它 hooks 的 handler 内容与顺序保留，无关 TOML 原文不重写；检测到并发变化停止。
+两文件部署不是跨文件事务，报告会保留部分安装状态。`verified_active` 只证明发现与信任，
+`execution_verified` 不会据此置真；请开新会话验真实执行。
+
+- `UserPromptSubmit` 同步执行共享引擎的 context/standard intake 评估，记录在项目外；
+  不保存原始 prompt、不创建实验。Intake 不替代真实目标的语义复杂度评估，也不进入最近五个目标。
+- 模型随后通过原生 MCP 成功调用 `h2_context → h2_assess`；`PostToolUse` 复核实际结果、
+  项目、顺序与引擎记录，生成当轮回执。CLI 打印或旧轮次结果不能冒充回执。
+- `PreToolUse` 在回执缺失、待处理、损坏或超时时显式拒绝业务工具；不是只输出提示。
+  `skip` 任务不能调用 `h2_start`，同轮中途换目标和新轮次都不能沿用旧授权。
+- `start` 前只允许受限单条读取或用 `apply_patch` 写
+  `.harness2-preflight/<task_key>/` 准备输入及两个独立检查器，随后必须绑定 `assessment=task_key`。
+  简单任务不创建该目录。已验证候选目录映射回父项目与同一 run，禁止嵌套实验。
+- `Stop` 校验本轮涉及的语义目标，不能用另一个已评估项目掩盖尚未评估的目标。
+  真正的失败、UNKNOWN 和已验证补丁收尾规则继续有效。
+
+门禁和引擎部署为按内容哈希命名的固定副本，运行时再次核对两个文件。
+更新插件后应重新运行安装／信任并新开会话；不要直接改已部署副本。
+本版在桌面捆绑 Codex `0.166.0-alpha.5.1` 实测，需要支持对应生命周期和 `hooks/list` 的宿主。
+使用明确的 Git 根目录或非 Git 项目目录，且 `CODEX_HOME` 必须在业务项目之外。
+
+这是受支持 Codex 工具路径上的门禁，**不是 OS 安全沙箱**。已有 `write_stdin` 会话
+不会再次触发 Pre；同步 prompt intake 在模型继续前记录轻量评估。hosted/部分专用路径、
+关闭 hooks、旧的未刷新会话或宿主进程被杀，不属于完整强制边界。其它插件自己的 hook
+副作用也不由本插件控制。实际验证范围与失败保留见 [v0.4 验证](docs/VALIDATION-0.4.0.md)。
+
 ## 存储与迁移
 
 `h2_context`、`h2_assess`、普通 `h2_feedback` 以及应用后 closeout 的任务记录写入：

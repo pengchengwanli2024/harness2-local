@@ -1,0 +1,150 @@
+{
+  "version": "0.4.0",
+  "date": "2026-11-02",
+  "local_tests_passed": 118,
+  "live_cases": [
+    {
+      "case": "existing-only-code",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "actual_denials": 1,
+      "trigger_only": false,
+      "expected_fail_closed": false,
+      "semantic_decision": "skip",
+      "prior_experience_count": 1,
+      "automatic_intake_recorded": true,
+      "legacy_and_uncommitted_sentinels_unchanged": true,
+      "profile": "Temporary isolated Codex home containing only the same four H2 hooks; normal auth reused by symlink, never copied."
+    },
+    {
+      "case": "new-complex",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_start"
+      ],
+      "actual_denials": 1,
+      "trigger_only": true,
+      "expected_fail_closed": false,
+      "semantic_decision": "start",
+      "prior_experience_count": 0,
+      "automatic_intake_recorded": true,
+      "legacy_and_uncommitted_sentinels_unchanged": true,
+      "profile": "Temporary isolated Codex home containing only the same four H2 hooks; normal auth reused by symlink, never copied."
+    },
+    {
+      "case": "existing-complex",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_start"
+      ],
+      "actual_denials": 0,
+      "trigger_only": true,
+      "expected_fail_closed": false,
+      "semantic_decision": "start",
+      "prior_experience_count": 1,
+      "automatic_intake_recorded": true,
+      "legacy_and_uncommitted_sentinels_unchanged": true,
+      "profile": "Temporary isolated Codex home containing only the same four H2 hooks; normal auth reused by symlink, never copied."
+    },
+    {
+      "case": "repeated-failure",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_start"
+      ],
+      "actual_denials": 1,
+      "trigger_only": true,
+      "expected_fail_closed": false,
+      "semantic_decision": "start",
+      "prior_experience_count": 0,
+      "automatic_intake_recorded": true,
+      "legacy_and_uncommitted_sentinels_unchanged": true,
+      "profile": "Temporary isolated Codex home containing only the same four H2 hooks; normal auth reused by symlink, never copied."
+    },
+    {
+      "case": "new-only-readme",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "actual_denials": 1,
+      "trigger_only": false,
+      "expected_fail_closed": false,
+      "semantic_decision": "skip",
+      "prior_experience_count": 0,
+      "automatic_intake_recorded": true,
+      "legacy_and_uncommitted_sentinels_unchanged": true,
+      "profile": "Temporary isolated Codex home containing only the same four H2 hooks; normal auth reused by symlink, never copied."
+    },
+    {
+      "case": "new-only-code",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "actual_denials": 1,
+      "trigger_only": false,
+      "expected_fail_closed": false,
+      "semantic_decision": "skip",
+      "prior_experience_count": 0,
+      "automatic_intake_recorded": true,
+      "legacy_and_uncommitted_sentinels_unchanged": true,
+      "profile": "Temporary isolated Codex home containing only the same four H2 hooks; normal auth reused by symlink, never copied."
+    },
+    {
+      "case": "missed-start-denied",
+      "passed": true,
+      "native_success_calls": [],
+      "actual_denials": 1,
+      "trigger_only": false,
+      "expected_fail_closed": true,
+      "semantic_decision": null,
+      "prior_experience_count": 0,
+      "automatic_intake_recorded": true,
+      "legacy_and_uncommitted_sentinels_unchanged": true,
+      "profile": "Temporary isolated Codex home containing only the same four H2 hooks; normal auth reused by symlink, never copied."
+    }
+  ],
+  "runtime_hashes": {
+    "gate.py": "76761dd1d82d96c5029ff4b83e4cc6872d01dd62ce0c9bccc87f0f51a5e728d7",
+    "harness2_local.py": "f2fcd767387dd4e4f631a3d5af20f2ba7f813ca49d20f1d447aa967e8dc23e33"
+  },
+  "installed_owned_hooks": 4,
+  "native_trust_verified": true,
+  "execution_acceptance_verified": true,
+  "automatic_intake": "shared context and standard assessment before model/tool execution; not semantic classification",
+  "semantic_gate": "native MCP context then assessment, verified by PostToolUse for this turn and project",
+  "raw_prompts_in_hook_receipts": false,
+  "business_files_written_by_lightweight_hooks": false,
+  "foreign_user_hooks_preserved": true,
+  "normal_auth_reused_without_copy": true,
+  "private_evidence_published": false,
+  "real_0_3_run_readback": "passed; original state retained",
+  "proven_general_gain": false,
+  "limits": [
+    "Supported Codex lifecycle/local-tool paths only; not an OS security boundary.",
+    "Existing write_stdin sessions do not re-enter PreToolUse; synchronous prompt intake records lightweight evaluation before continued model execution in the selected project.",
+    "A home-wide workspace containing CODEX_HOME is not a valid isolated business project. Select its actual project directory.",
+    "Native discovery/trust is not execution proof; fresh sessions must load the installed hooks.",
+    "Foreign hook side effects, hosted/specialized opt-out paths, hook disablement and host process death remain outside this guard.",
+    "Three complex/failure fixtures were intentionally interrupted after successful start; one also executed pwd in the verified non-Git baseline workspace. They do not establish full synthetic business-project completion."
+  ],
+  "retained_earlier_failures": [
+    "Non-isolated existing-project acceptance failed because pre-existing hooks generated/refreshed .enola. Exact tree assertions were retained; final H2 execution tests used an isolated profile.",
+    "Post pending, preparation arguments, workspace mapping and multi-project Stop gaps were corrected and covered by added regressions."
+  ]
+}

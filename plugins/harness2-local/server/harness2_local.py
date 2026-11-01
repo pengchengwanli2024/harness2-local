@@ -18,12 +18,14 @@ import tempfile
 import time
 import uuid
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 UPSTREAM = "1cfe254e8d25b15f37048c3730134686abe60335"
 LABELS = ("baseline", "general", "domain", "composed")
 SURFACES = {"instructions.md", "tool-guidance.md"}
 MAX_BYTES = 2 * 1024 * 1024
 MCP_INSTRUCTIONS = (
+    "配置强制hook后，每轮必须取得原生context/assess回执；hook intake不替代语义评估。"
+    "simple的skip禁止h2_start；start前仅准备.harness2-preflight/<task_key>/内冻结输入再绑定启动。"
     "每个开发目标（包括只改指定文件的小改）先调用 h2_context 和 h2_assess。"
     "轻量记录写入 Codex 按项目隔离的外部 sidecar，不修改业务工作树；元数据记录不是修改指定业务文件。"
     "simple/standard 未发生连续两轮独立实现验证失败时仅评估，不调用 h2_start；"
@@ -235,7 +237,7 @@ def load_run(store, run_id, check_source=True):
     require(re.fullmatch(r"[a-f0-9]{24}", run_id or ""), "Invalid run ID")
     run_dir = child(store, f"runs/{run_id}")
     state = json.loads(read_bytes(child(run_dir, "state.json")))
-    require(state["version"] in {"0.1.0", "0.2.0", "0.2.1", VERSION}, "Unsupported run version; do not resume")
+    require(state["version"] in {"0.1.0", "0.2.0", "0.2.1", "0.3.0", VERSION}, "Unsupported run version; do not resume")
     require(state["project"] == str(store.parent), "Run belongs to a different project")
     frozen = state["contract"]
     require(digest(json.dumps(frozen, sort_keys=True).encode()) == state["contract_sha256"],
@@ -631,10 +633,14 @@ def auto_context(store):
                 paths_by_key.setdefault(path.stem, path)
     tasks = []
     paths = sorted(paths_by_key.values(), key=lambda p: p.stat().st_mtime_ns, reverse=True)
-    for path in paths[:5]:
+    for path in paths:
         value = auto_load(store, path.stem)
+        if value.get("record_kind") == "hook-intake":
+            continue
         tasks.append({k: value.get(k) for k in
                       ("task_key", "task", "domain", "complexity", "failure_streak", "run", "assessed_at")})
+        if len(tasks) == 5:
+            break
     library = child(store, "library")
     domains = []
     if library.exists():

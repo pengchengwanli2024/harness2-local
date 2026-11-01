@@ -13,6 +13,31 @@ Codex instructions. Explicit opt-in configuration scripts act only when requeste
 
 ## Automatic kickoff and failure escalation
 
+When the user installs the trusted forced hooks, `UserPromptSubmit` first records
+an automatic shared-engine intake (context + standard assessment; no experiment,
+no raw prompt storage). Intake records are separate from semantic goals and are
+excluded from the normal five-goal context. Then obtain native MCP `h2_context`
+and `h2_assess` success results in this turn/project. `PostToolUse` verifies them;
+`PreToolUse` denies business tools until the receipt exists. CLI text or prior
+turns cannot grant this native receipt. A new/steered goal invalidates old receipts.
+A missing/broken receipt is a blocker, not permission to bypass the hook.
+
+For `decision=skip`, use ordinary development and feedback; `h2_start` is denied.
+For `start`, before a bound run exists, use single `cat`/`rg --no-config`/`ls`/`pwd` reads (no custom shell/environment/login startup) and
+`apply_patch` **only** inside `.harness2-preflight/<task_key>/` to prepare read-only
+inputs and two independent checker files. Include those relative paths in
+`h2_start.input_files`, supply different probe/validation commands, and bind
+`assessment=task_key`. After successful start, execute the four candidates and
+complete the workflow. Original file ownership and authorization still apply.
+Never alter the hook or its state to make an experiment pass.
+
+The hooks are enforced on supported Codex lifecycle/tool paths; they are not an
+OS sandbox. Existing `write_stdin` sessions do not re-enter PreToolUse, so the
+synchronous prompt intake records assessment before resumed model execution.
+Host hook disablement or process death can fall outside this local gate. Installation
+and trust discovery alone do not prove execution: verify a fresh desktop session.
+
+
 每项工作区文件编辑都先评估，包括 README、文档、配置的一行小改。首次业务写入前，顺序取得原生 h2_context 与 h2_assess 的实际成功结果；只在心里判断或宣布评估不算完成。simple/standard 没有连续两轮实现失败时，只评估、正常修改验证并用 h2_feedback 留存结果，不调用 h2_start。
 “只改指定文件/其它文件不变/只在当前项目操作”约束业务工作树；已授权的原生评估服务只读取本项目，记录在 Codex 的按项目隔离 sidecar，不读取账户配置或凭据、不新增业务文件。用户若明确禁止任何目录外运行状态写入，尊重该限制并说明未记录，不能自行扩权。
 工具若延迟展示，先按 h2_context/h2_assess 名称查找当前可用工具目录。只有原生工具确实未加载才使用技能规定的同实现 CLI；权限拒绝时报告具体阻塞，不能换入口绕过或伪称已记录。其余任务身份、复杂度、失败归并与本项目经验规则沿用既有技能。

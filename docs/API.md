@@ -149,3 +149,34 @@ An enabled entry with the same command and arguments is idempotent.
 verifies a live desktop connection. Open a new Codex conversation to refresh
 registration and instructions, then inspect actual tool availability. Keep
 personal configuration candidates and backups out of public source control.
+
+
+## Forced lifecycle hooks (v0.4)
+
+The ten tool APIs remain unchanged. `configure_forced_hooks.py` explicitly deploys
+four synchronous command hooks and, with `--apply --trust`, trusts only hashes
+returned for those exact definitions by the native host. Deployment metadata is
+not execution acceptance; the installer reports that distinction.
+
+Automatic intake uses the same context and assessment implementation with
+`record_kind: hook-intake`, standard complexity and no experiment. It preserves
+only a prompt hash/opaque identity; semantic native goals remain distinct. Normal
+`h2_context` excludes intake entries while still returning up to five real goals.
+
+Receipts and per-session locks are outside the business tree at
+`$CODEX_HOME/harness2-local/hook-gates/<session-sha256>/<turn-sha256>.json`.
+They bind project and native result order, detect corruption and never grant from
+shell text. Reclassification marks a pending operation before execution; only its
+matching successful Post can restore access. A changed prompt within the same
+turn invalidates the old goal receipt. The hook's internal deadline emits an
+explicit deny before the longer host timeout.
+
+A start decision permits only bounded preparation under
+`.harness2-preflight/<task_key>/` until a bound run exists. A skip decision cannot
+start or execute an experiment. Verified candidate paths map to the original
+project and run; unverified run identity fails closed. Actual validation feedback
+for the same assessed task remains recordable before start/closeout.
+
+A full code/engine update requires a new content-addressed runtime and explicit
+trust review; old bundles are preserved. The existing legacy migration,
+validated_inputs closeout and failure/UNKNOWN retention contracts continue.
