@@ -37,6 +37,12 @@ synchronous prompt intake records assessment before resumed model execution.
 Host hook disablement or process death can fall outside this local gate. Installation
 and trust discovery alone do not prove execution: verify a fresh desktop session.
 
+For Cognee/Enola coexistence, see [the optional local adapter](../../COGNEE-COEXISTENCE.md).
+Its service activation is separate from hook installation. Verify the full real
+profile, including detached indexing workers; never disable foreign hooks to
+claim that a specified-file-only request preserves the business tree. Keep old
+`.enola` and prior failed acceptance evidence intact.
+
 
 每项工作区文件编辑都先评估，包括 README、文档、配置的一行小改。首次业务写入前，顺序取得原生 h2_context 与 h2_assess 的实际成功结果；只在心里判断或宣布评估不算完成。simple/standard 没有连续两轮实现失败时，只评估、正常修改验证并用 h2_feedback 留存结果，不调用 h2_start。
 “只改指定文件/其它文件不变/只在当前项目操作”约束业务工作树；已授权的原生评估服务只读取本项目，记录在 Codex 的按项目隔离 sidecar，不读取账户配置或凭据、不新增业务文件。用户若明确禁止任何目录外运行状态写入，尊重该限制并说明未记录，不能自行扩权。

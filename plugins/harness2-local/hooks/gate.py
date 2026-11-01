@@ -132,38 +132,57 @@ def tool_input(event):
     return value
 
 
+def candidate_workspace(path):
+    for ancestor in (path, *path.parents):
+        if (ancestor.parent.name == 'workspaces' and ancestor.parent.parent.parent.name == 'runs'
+                and ancestor.parent.parent.parent.parent.name == '.harness2'):
+            return ancestor
+    return None
+
+
 def scoped_project(engine, value, state):
     raw = Path(value).expanduser()
     require(raw.is_absolute() and raw.is_dir())
     raw = raw.resolve()
-    for ancestor in (raw, *raw.parents):
-        if (ancestor.parent.name == 'workspaces' and ancestor.parent.parent.parent.name == 'runs'
-                and ancestor.parent.parent.parent.parent.name == '.harness2'):
-            run_id = ancestor.parent.parent.name
-            parent = ancestor.parent.parent.parent.parent.parent
-            try:
-                with engine.locked(str(parent)) as (_, store):
-                    _, run = engine.load_run(store, run_id, check_source=True)
-                    require(any(Path(c['workspace']).resolve() == ancestor for c in run['candidates'].values()))
-                    contract = run['contract']
-                    task_key = sha((contract['domain'] + '\n' + ' '.join(contract['task'].split())).encode())[:24]
-                    goal = engine.auto_load(store, task_key)
-                    require(goal.get('run') == run_id)
-                state['workspace_run'] = run_id
-                return parent
-            except (ValueError, OSError, KeyError) as exc:
-                raise WorkspaceIntegrity('Cannot verify the bound experiment workspace') from exc
+    ancestor = candidate_workspace(raw)
+    if ancestor is not None:
+        run_id = ancestor.parent.parent.name
+        parent = ancestor.parent.parent.parent.parent.parent
+        try:
+            with engine.locked(str(parent)) as (_, store):
+                _, run = engine.load_run(store, run_id, check_source=True)
+                require(any(Path(c['workspace']).resolve() == ancestor for c in run['candidates'].values()))
+                contract = run['contract']
+                task_key = sha((contract['domain'] + '\n' + ' '.join(contract['task'].split())).encode())[:24]
+                goal = engine.auto_load(store, task_key)
+                require(goal.get('run') == run_id)
+            state['workspace_run'] = run_id
+            return parent
+        except (ValueError, OSError, KeyError) as exc:
+            raise WorkspaceIntegrity('Cannot verify the bound experiment workspace') from exc
     return project(str(raw))
 
 
 def target_project(engine, event, state, inp, native):
-    value = inp.get('project') if native else inp.get('workdir', inp.get('cwd'))
+    value = inp.get('project') if native else (inp.get('workdir') or inp.get('cwd'))
     if not value:
-        value = state.get('current_project') or event.get('cwd')
+        if not native and event.get('tool_name') in ('Bash', 'exec_command', 'shell_command', 'shell'):
+            value = event.get('cwd')  # Commands without workdir actually run in the session cwd.
+        else:
+            value = state.get('current_project') or event.get('cwd')
     require(isinstance(value, str))
-    # A fresh child session can start directly in a candidate workspace.
+    selected = Path(value).expanduser()
+    require(selected.is_absolute())
+    # Only a real candidate-shaped session cwd needs separate parent-run checks.
+    # An unrelated HOME-wide cwd must not veto an explicitly selected project.
     if event.get('cwd'):
-        scoped_project(engine, event['cwd'], state)
+        session_cwd = Path(event['cwd']).expanduser()
+        require(session_cwd.is_absolute())
+        session_cwd = session_cwd.resolve()
+        if candidate_workspace(session_cwd) is not None:
+            session_root = scoped_project(engine, str(session_cwd), state)
+            if selected.resolve() == session_cwd:
+                return session_root
     return scoped_project(engine, value, state)
 
 

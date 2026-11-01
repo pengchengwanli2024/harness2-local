@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.1 — 2026-11-02
+
+- Add an optional, content-pinned Cognee Enola adapter. Generate immutable,
+  project-isolated source snapshots externally and redirect both node/edge
+  readers without changing the original repository or dataset inputs.
+- Preserve repository `.enola` files, previous generations and failed results;
+  never fall back to writing the original repository after an adapter failure.
+- Install through one owned venv `.pth`, with preview, conflict checks and
+  immutable runtime bundles. Do not modify Cognee package files or installed
+  plugin caches; running services activate it only after a controlled restart.
+- Preserve ordinary memory imports and distribution metadata discovery. Reject
+  unsupported Enola configurations and stale package pins for code indexing.
+- Fix explicit project selection from HOME sessions while still validating
+  candidate workspaces. Commands without workdir use their actual session cwd.
+- Retain 0.4.0 run compatibility and prior validation/failure evidence.
+
 ## 0.4.0 — 2026-11-02
 
 - Add opt-in trusted synchronous UserPromptSubmit, PreToolUse, PostToolUse and Stop hooks.

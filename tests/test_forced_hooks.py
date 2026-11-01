@@ -562,6 +562,75 @@ class ForcedHookTests(unittest.TestCase):
         self.assert_denied(corrupt)
         self.assertIn("WorkspaceIntegrity", corrupt[1].get("hookSpecificOutput", {}).get("permissionDecisionReason", ""))
 
+    def test_home_session_explicit_project_can_complete_native_pair(self):
+        simulated_home = self.base  # Real directory containing the isolated CODEX_HOME.
+        self.assertTrue(self.home.is_relative_to(simulated_home))
+        before = tree(self.project)
+        prompt = self.event("UserPromptSubmit", prompt="在显式选择的项目中只修复README标点。")
+        prompt["cwd"] = str(simulated_home)
+        self.assert_allowed(self.hook(prompt))
+        before_pair = self.event("PreToolUse", tool_name="Bash",
+                                 tool_input={"command": "touch must-not-exist", "workdir": str(self.project)})
+        before_pair["cwd"] = str(simulated_home)
+        self.assert_denied(self.hook(before_pair))
+        context_pre = self.event("PreToolUse", tool_name="mcp__harness2_local__h2_context",
+                                 tool_input={"project": str(self.project)}, tool_use_id="home-context")
+        context_pre["cwd"] = str(simulated_home)
+        self.assert_allowed(self.hook(context_pre))
+        self.assert_allowed(self.observe("h2_context", {}, self.actual("h2_context"),
+                                         event_cwd=simulated_home, tool_use_id="home-context"))
+        arguments = {"task": "Repair the explicitly selected fixture README punctuation",
+                     "domain": "fixture-files", "complexity": "simple", "signals": []}
+        assess_pre = self.event("PreToolUse", tool_name="mcp__harness2_local__h2_assess",
+                                tool_input={"project": str(self.project), **arguments}, tool_use_id="home-assess")
+        assess_pre["cwd"] = str(simulated_home)
+        self.assert_allowed(self.hook(assess_pre))
+        assessed = self.actual("h2_assess", **arguments)
+        self.assert_allowed(self.observe("h2_assess", arguments, assessed,
+                                         event_cwd=simulated_home, tool_use_id="home-assess"))
+        self.assert_allowed(self.hook(before_pair))
+        for command_tool in ("Bash", "exec_command", "shell_command", "shell"):
+            with self.subTest(tool=command_tool):
+                no_workdir = self.event("PreToolUse", tool_name=command_tool,
+                                        tool_input={"command": "touch must-not-write-in-home"})
+                no_workdir["cwd"] = str(simulated_home)
+                self.assert_denied(self.hook(no_workdir))
+        explicit_cwd = self.event("PreToolUse", tool_name="Bash",
+                                  tool_input={"command": "touch fixture-only", "workdir": None, "cwd": str(self.project)})
+        explicit_cwd["cwd"] = str(simulated_home)
+        self.assert_allowed(self.hook(explicit_cwd))
+        cached_project_patch = self.event("PreToolUse", tool_name="apply_patch", tool_input=self.patch("fixture.py"))
+        cached_project_patch["cwd"] = str(simulated_home)
+        self.assert_allowed(self.hook(cached_project_patch))
+        unrelated = self.event("PreToolUse", tool_name="Bash",
+                               tool_input={"command": "touch unrelated-file", "workdir": str(self.other)})
+        unrelated["cwd"] = str(simulated_home)
+        self.assert_denied(self.hook(unrelated))
+        self.assertEqual(tree(self.project), before)
+        self.assertFalse((self.project / ".harness2").exists())
+
+    def test_home_session_explicit_project_never_bypasses_tampered_candidate_cwd(self):
+        self.prompt(text="升级真实复杂契约并在父项目内绑定实验。")
+        assessed = self.pair(complexity="complex")
+        run = self.fixture_bound_run(assessed)
+        workspace = Path(run["candidates"]["baseline"]["workspace"])
+        state_path = self.project / ".harness2/runs" / run["id"] / "state.json"
+        damaged = json.loads(state_path.read_text())
+        damaged["contract"]["executor"] = "deliberately corrupted fixture contract"
+        state_path.write_text(json.dumps(damaged))
+        explicit_parent = self.event("PreToolUse", tool_name="mcp__harness2_local__h2_context",
+                                     tool_input={"project": str(self.project)}, tool_use_id="candidate-parent")
+        explicit_parent["cwd"] = str(workspace)
+        rejected = self.hook(explicit_parent)
+        self.assert_denied(rejected)
+        self.assertIn("WorkspaceIntegrity", rejected[1].get("hookSpecificOutput", {}).get("permissionDecisionReason", ""))
+        explicit_candidate = self.event("PreToolUse", tool_name="Bash",
+                                        tool_input={"command": "cat task.json", "workdir": str(workspace)})
+        explicit_candidate["cwd"] = str(self.base)
+        rejected = self.hook(explicit_candidate)
+        self.assert_denied(rejected)
+        self.assertIn("WorkspaceIntegrity", rejected[1].get("hookSpecificOutput", {}).get("permissionDecisionReason", ""))
+
     def test_content_digest_mismatch_denies_before_any_business_change(self):
         self.prompt()
         self.pair()

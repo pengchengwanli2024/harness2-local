@@ -20,6 +20,7 @@ An independent, local-first Harness² method adapter for Codex: propose, probe, 
 - 保留输入、执行指导、产物、日志、哈希、失败和中断证据，禁止静默重放。
 - 独立最终验证后采纳组合方案，或在没有增益时保留通过的原方案。
 - v0.3 将轻量任务元数据和锁移到 Codex 的项目隔离 sidecar，评估不改业务工作树；完整实验与经验仍保存在本项目 `.harness2/`。
+- v0.4.1 提供可选 Cognee/Enola 外置快照适配器，保留真实项目和 dataset 身份，避免自动代码索引刷新业务目录中的 `.enola`。旧缓存与失败记录保留。
 - 保留 v0.2.1 应用补丁后的显式验证收尾；未经验证的变更仍会阻断，不自动写入永久记忆。
 
 ## 环境
@@ -29,6 +30,10 @@ An independent, local-first Harness² method adapter for Codex: propose, probe, 
 - Git 用于克隆；不需要 API Key、额外模型服务或后台守护进程。
 
 Windows 原生运行未提供支持；可在受支持的 Linux 环境中使用。
+
+Cognee/Enola 集成独立安装到已有本地 Cognee venv，使用其 Enola binary；存在
+仓库 YAML 配置时还使用该环境的 PyYAML。它不改变直接运行的 Enola 命令。
+见 [安装、服务激活和边界](plugins/harness2-local/COGNEE-COEXISTENCE.md)。
 
 ## 安装
 

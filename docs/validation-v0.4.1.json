@@ -1,0 +1,46 @@
+{
+  "version": "0.4.1",
+  "date": "2026-11-02",
+  "status": "implemented-local-verified-service-activation-pending",
+  "local_regressions_passed": 137,
+  "actual_installed_cognee": "1.6.5",
+  "actual_installed_enola_cli": "0.4.30",
+  "actual_enola_generation_and_both_readers_passed": true,
+  "source_bytes_modes_mtimes_and_legacy_enola_unchanged": true,
+  "real_global_profile": {
+    "all_installed_hooks_trusted_and_enabled": 14,
+    "new_non_git_readme_only": {
+      "passed": true,
+      "native_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "decision": "skip",
+      "h2_start_called": false,
+      "changed": [
+        "README.md"
+      ]
+    },
+    "new_git_and_existing_git_full_acceptance": "pending shared-service activation"
+  },
+  "shared_service_restarted": false,
+  "service_activation_verified": false,
+  "execution_acceptance_verified": false,
+  "reason": "Another project has a live connection to the shared Cognee server; bounded restart requires coordination.",
+  "prior_evidence_files_unchanged": 20049,
+  "unrelated_config_and_foreign_hooks_preserved": true,
+  "private_evidence_published": false,
+  "retained_failures": [
+    "v0.4 real-profile .enola strict-tree failures retained unchanged",
+    "Initial PathFinder distribution-discovery regression retained and repaired",
+    "Immutable runtime symlink acceptance reproduced and repaired"
+  ],
+  "limits": [
+    "Optional server adapter requires a new Cognee service process; installation alone is not activation.",
+    "Core Harness2 remains stdlib; repository YAML validation in optional adapter requires PyYAML.",
+    "Async snapshot binding lost by an incompatible pipeline fails closed; actual target pipeline verification is pending.",
+    "Git metadata is excluded from source snapshots; unsupported configs are rejected.",
+    "No universal model-quality improvement or OS-level enforcement claim."
+  ]
+}

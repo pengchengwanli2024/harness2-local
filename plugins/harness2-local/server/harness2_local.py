@@ -18,7 +18,7 @@ import tempfile
 import time
 import uuid
 
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 UPSTREAM = "1cfe254e8d25b15f37048c3730134686abe60335"
 LABELS = ("baseline", "general", "domain", "composed")
 SURFACES = {"instructions.md", "tool-guidance.md"}
@@ -237,7 +237,7 @@ def load_run(store, run_id, check_source=True):
     require(re.fullmatch(r"[a-f0-9]{24}", run_id or ""), "Invalid run ID")
     run_dir = child(store, f"runs/{run_id}")
     state = json.loads(read_bytes(child(run_dir, "state.json")))
-    require(state["version"] in {"0.1.0", "0.2.0", "0.2.1", "0.3.0", VERSION}, "Unsupported run version; do not resume")
+    require(state["version"] in {"0.1.0", "0.2.0", "0.2.1", "0.3.0", "0.4.0", VERSION}, "Unsupported run version; do not resume")
     require(state["project"] == str(store.parent), "Run belongs to a different project")
     frozen = state["contract"]
     require(digest(json.dumps(frozen, sort_keys=True).encode()) == state["contract_sha256"],
