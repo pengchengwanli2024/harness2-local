@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.3.0 — 2026-11-02
+
+- Move lightweight task metadata and project locks into
+  `$CODEX_HOME/harness2-local/projects/<sha256(real project path)>/`, with
+  `CODEX_HOME` defaulting to `~/.codex`. Context, assessment and ordinary feedback
+  do not create or modify files in the business project.
+- Keep full experiment runs and libraries in the project's original `.harness2/`.
+  Copy legacy task metadata read-only, retain events and closeouts, bind its
+  original bytes by SHA-256, and block later legacy changes. Open existing legacy
+  locks read-only; do not create project locks for lightweight calls.
+- Preserve v0.2.1 `validated_inputs` and append-only post-application closeout,
+  including frozen-evidence checks and compatibility with older runs.
+- Add kickoff MCP instructions covering edits limited to specified files,
+  project context recovery and assessment before implementation. Automatic
+  routing remains model-guided, not enforced by hooks or guaranteed for every
+  natural-language request.
+- Support direct native desktop stdio registration through user `config.toml`.
+  The registration script previews before explicit application, appends only its
+  owned section, preserves unrelated original bytes, and refuses conflicting
+  ownership/transport, managed config symlinks and detected concurrent edits.
+  `--codex-bin` is report metadata, not execution or live desktop verification.
+- Add opt-in, named per-tool approval configuration; preserve existing explicit
+  policies and other servers. Never grant blanket trust by default.
+- Add a separately reviewed, opt-in developer session gate matching the tested
+  instruction loading layer; preserve foreign developer instructions and all
+  unrelated config bytes. This remains instruction-guided, not a forced hook.
+- Require Python 3.11+ for standard-library `tomllib`; configure CI for 3.11 and
+  3.13. Expand isolated storage and registration safety regressions without
+  treating them as live desktop or natural-language acceptance.
+
 ## 0.2.1 — 2026-11-02
 
 First public release of the local Codex adapter.

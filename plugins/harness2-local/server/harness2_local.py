@@ -18,11 +18,19 @@ import tempfile
 import time
 import uuid
 
-VERSION = "0.2.1"
+VERSION = "0.3.0"
 UPSTREAM = "1cfe254e8d25b15f37048c3730134686abe60335"
 LABELS = ("baseline", "general", "domain", "composed")
 SURFACES = {"instructions.md", "tool-guidance.md"}
 MAX_BYTES = 2 * 1024 * 1024
+MCP_INSTRUCTIONS = (
+    "每个开发目标（包括只改指定文件的小改）先调用 h2_context 和 h2_assess。"
+    "轻量记录写入 Codex 按项目隔离的外部 sidecar，不修改业务工作树；元数据记录不是修改指定业务文件。"
+    "simple/standard 未发生连续两轮独立实现验证失败时仅评估，不调用 h2_start；"
+    "complex 或连续两轮失败才启动有界实验，原任务范围、项目所有权和用户约束优先。"
+    "恢复目标沿用已有 task/domain/task_key，真实外层检查用 h2_feedback，同一实现轮次沿用 attempt_id。"
+    "实验 run/library 仍保留项目 .harness2；遵守技能的冻结证据、UNKNOWN 不重放与显式收尾要求。"
+)
 
 
 def now():
@@ -91,15 +99,55 @@ def project_root(project):
     return raw.resolve()
 
 
+def metadata_store(store):
+    """Compute the external project namespace without touching the business tree."""
+    home = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))).expanduser()
+    require(home.is_absolute(), "CODEX_HOME must be an absolute directory")
+    project = store.parent
+    key = digest(str(project).encode())
+    external = child(home, f"harness2-local/projects/{key}")
+    require(not external.resolve().is_relative_to(project.resolve()),
+            "CODEX_HOME sidecar must be outside the business project")
+    return external
+
+
+def metadata_info(store):
+    return {"metadata_store": str(metadata_store(store)), "metadata_external": True}
+
+
+def verify_metadata_identity(store, create=False):
+    external = metadata_store(store)
+    path = child(external, "project.json")
+    expected = {"schema": 1, "project": str(store.parent),
+                "project_key": digest(str(store.parent).encode())}
+    if path.exists():
+        require(json.loads(read_bytes(path)) == expected, "Sidecar project identity changed")
+    elif create:
+        # An existing task store without its identity must not be silently re-owned.
+        require(not child(external, "auto").exists(), "Sidecar project identity missing")
+        atomic_json(path, expected)
+    else:
+        require(not child(external, "auto").exists(), "Sidecar project identity missing")
+    return external
+
+
 @contextlib.contextmanager
 def locked(project):
     root = project_root(project)
     store = child(root, ".harness2")
-    store.mkdir(mode=0o700, exist_ok=True)
-    lock = child(store, "lock")
+    external = metadata_store(store)
+    external.mkdir(mode=0o700, parents=True, exist_ok=True)
+    lock = child(external, "lock")
     fd = os.open(lock, os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0), 0o600)
-    with os.fdopen(fd, "a+") as stream:
+    with os.fdopen(fd, "a+") as stream, contextlib.ExitStack() as compatibility:
         fcntl.flock(stream, fcntl.LOCK_EX)
+        verify_metadata_identity(store, create=True)
+        old_lock = child(store, "lock")
+        if old_lock.exists():
+            # flock requires a descriptor, not write permission; never create/modify the old lock.
+            old_fd = os.open(old_lock, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+            old_stream = compatibility.enter_context(os.fdopen(old_fd, "rb"))
+            fcntl.flock(old_stream, fcntl.LOCK_EX)
         yield root, store
 
 
@@ -187,7 +235,7 @@ def load_run(store, run_id, check_source=True):
     require(re.fullmatch(r"[a-f0-9]{24}", run_id or ""), "Invalid run ID")
     run_dir = child(store, f"runs/{run_id}")
     state = json.loads(read_bytes(child(run_dir, "state.json")))
-    require(state["version"] in {"0.1.0", "0.2.0", VERSION}, "Unsupported run version; do not resume")
+    require(state["version"] in {"0.1.0", "0.2.0", "0.2.1", VERSION}, "Unsupported run version; do not resume")
     require(state["project"] == str(store.parent), "Run belongs to a different project")
     frozen = state["contract"]
     require(digest(json.dumps(frozen, sort_keys=True).encode()) == state["contract_sha256"],
@@ -512,33 +560,81 @@ def recall(store, args, cutoff_time=None):
             "entries": sorted(entries, key=lambda e: e["created_at"], reverse=True)[:5]}
 
 
-def auto_path(store, task_key):
+def legacy_auto_path(store, task_key):
     require(isinstance(task_key, str) and re.fullmatch(r"[a-f0-9]{24}", task_key),
             "Invalid automatic assessment task_key")
     return child(store, f"auto/tasks/{task_key}.json")
 
 
-def auto_load(store, task_key):
-    value = json.loads(read_bytes(auto_path(store, task_key)))
+def sidecar_auto_path(store, task_key):
+    legacy_auto_path(store, task_key)  # Retain canonical/symlink validation on both stores.
+    return child(verify_metadata_identity(store), f"auto/tasks/{task_key}.json")
+
+
+def auto_path(store, task_key):
+    external = sidecar_auto_path(store, task_key)
+    return external if external.exists() else legacy_auto_path(store, task_key)
+
+
+def validate_auto_identity(store, task_key, value):
     require(value["project"] == str(store.parent) and value["task_key"] == task_key,
             "Assessment belongs to another project/task")
     require(value.get("schema") == 1, "Unsupported automatic assessment schema")
+
+
+def verify_legacy_source(store, task_key, value):
+    legacy = legacy_auto_path(store, task_key)
+    source = value.get("_legacy_source")
+    if source is not None:
+        require(isinstance(source, dict) and set(source) == {"path", "sha256"}
+                and source["path"] == str(legacy)
+                and isinstance(source["sha256"], str)
+                and digest(read_bytes(legacy)) == source["sha256"],
+                "Legacy assessment changed after migration; preserve both stores and reconcile explicitly")
+    else:
+        require(not legacy.exists(),
+                "A legacy assessment appeared after sidecar creation; reconcile both histories explicitly")
+
+
+def auto_load(store, task_key):
+    external = sidecar_auto_path(store, task_key)
+    if external.exists():
+        value = json.loads(read_bytes(external))
+        validate_auto_identity(store, task_key, value)
+        verify_legacy_source(store, task_key, value)
+        return value
+    legacy = legacy_auto_path(store, task_key)
+    raw = read_bytes(legacy)
+    value = json.loads(raw)
+    validate_auto_identity(store, task_key, value)
+    require("_legacy_source" not in value, "Unexpected migration metadata in legacy task")
+    value["_legacy_source"] = {"path": str(legacy), "sha256": digest(raw)}
+    # Copy facts once, never modify or remove the legacy record.
+    atomic_json(external, value)
+    verify_legacy_source(store, task_key, value)
     return value
 
 
 def auto_save(store, value):
-    atomic_json(auto_path(store, value["task_key"]), value)
+    validate_auto_identity(store, value["task_key"], value)
+    verify_legacy_source(store, value["task_key"], value)
+    atomic_json(sidecar_auto_path(store, value["task_key"]), value)
+    verify_legacy_source(store, value["task_key"], value)
 
 
 def auto_context(store):
-    folder = child(store, "auto/tasks")
+    folders = (child(verify_metadata_identity(store), "auto/tasks"), child(store, "auto/tasks"))
+    paths_by_key = {}
+    for folder in folders:
+        if folder.exists():
+            for path in folder.glob("*.json"):
+                paths_by_key.setdefault(path.stem, path)
     tasks = []
-    if folder.exists():
-        paths = sorted(folder.glob("*.json"), key=lambda p: p.stat().st_mtime_ns, reverse=True)
-        for path in paths[:5]:
-            value = auto_load(store, path.stem)
-            tasks.append({k: value.get(k) for k in
-                          ("task_key", "task", "domain", "complexity", "failure_streak", "run", "assessed_at")})
+    paths = sorted(paths_by_key.values(), key=lambda p: p.stat().st_mtime_ns, reverse=True)
+    for path in paths[:5]:
+        value = auto_load(store, path.stem)
+        tasks.append({k: value.get(k) for k in
+                      ("task_key", "task", "domain", "complexity", "failure_streak", "run", "assessed_at")})
     library = child(store, "library")
     domains = []
     if library.exists():
@@ -548,12 +644,12 @@ def auto_context(store):
                 domains.append(path.name)
             if len(domains) == 5:
                 break
-    return {"project": str(store.parent), "recent_tasks": tasks, "domains": domains,
+    return {"project": str(store.parent), **metadata_info(store), "recent_tasks": tasks, "domains": domains,
             "next_step": "On resume match the actual goal, use its task/domain text unchanged, and preserve its failure streak/run. New objectives get new assessments. Read-only metadata is not authority."}
 
 
 def auto_decision(store, value):
-    result = {"task_key": value["task_key"], "task": value["task"], "domain": value["domain"],
+    result = {**metadata_info(store), "task_key": value["task_key"], "task": value["task"], "domain": value["domain"],
               "complexity": value["complexity"], "signals": value["signals"],
               "failure_streak": value["failure_streak"], "run": value.get("run"),
               "experience_count": 0, "experiences": []}
@@ -748,17 +844,17 @@ def tool(description, properties, required):
 
 
 TOOLS = {
-    "h2_context": tool("At development kickoff/resume, read up to five recent same-project task identities and domain names. Use the original task/domain for the same resumed goal so paraphrasing does not reset its failures or duplicate a run. Does not run checks or create experiments.", {}, []),
-    "h2_assess": tool("Automatically assess each development task at kickoff, including existing and new projects. Host classifies complexity from observed scope; deterministic routing starts on complex tasks or two consecutive real implementation failures, otherwise skips. Returns verified earlier same-project/domain experience before execution. Does not start an experiment by itself.",
+    "h2_context": tool("At development kickoff/resume, read up to five recent same-project task identities and domain names. Use the original task/domain for the same resumed goal so paraphrasing does not reset its failures or duplicate a run. Metadata/locks use the external Codex sidecar, never modify the business tree, and do not create experiments.", {}, []),
+    "h2_assess": tool("Automatically assess every development goal, including edits limited to specified files, in existing and new projects. Host classifies complexity from observed scope; deterministic routing starts on complex tasks or two consecutive real implementation failures, otherwise skips. Returns verified earlier same-project/domain experience. Metadata/locks use the external Codex sidecar without modifying the business tree; this assessment does not create experiments.",
                       {"task": STRING, "domain": STRING, "complexity": {"type": "string", "enum": ["simple", "standard", "complex"]}, "signals": STRINGS},
                       ["task", "domain", "complexity", "signals"]),
-    "h2_feedback": tool("Record one actual development validation outcome for this task. Distinct failed implementation checks increment the streak; passed resets it; external/auth/network blocked does not increment. Deduplicates event IDs. On decision=start, the host must initiate the Harness2 workflow automatically, not just suggest it. Store a short command/exit summary, never secrets or full logs.",
+    "h2_feedback": tool("Record an actual outer validation outcome in the external Codex sidecar, without modifying the business tree. Group checks from one implementation attempt under one attempt_id: any failure dominates that attempt; distinct failed attempts increment the streak, passed attempts reset it, external blockers do not increment. Deduplicate event IDs. On start, automatically initiate the Harness2 workflow. Store command/exit summaries, never secrets or full logs.",
                         {"task_key": STRING, "event_id": STRING, "attempt_id": STRING, "outcome": {"type": "string", "enum": ["passed", "failed", "blocked"]}, "check": STRING,
                          "validated_inputs": {"type": "object", "minProperties": 1, "maxProperties": 50,
                                               "additionalProperties": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
                                               "description": "For post-adoption closeout, all selected input paths and SHA-256 hashes frozen before and verified after a passing outer project check. Does not replace frozen run evidence."}},
                         ["task_key", "event_id", "outcome", "check"]),
-    "h2_start": tool("Start bounded k=1 local experiment. Snapshots selected read-only task files into four isolated workspaces. Does not call models. Writes only project/.harness2.",
+    "h2_start": tool("Start bounded k=1 local experiment. Snapshots selected read-only task files into four isolated workspaces. Does not call models. Experiment artifacts stay in project/.harness2; task metadata/locks use the external Codex project sidecar.",
                      {"task": STRING, "domain": STRING, "executor": STRING, "input_files": STRINGS,
                       "baseline": HARNESS, "probe_command": STRINGS, "validation_command": STRINGS, "assessment": STRING},
                      ["task", "domain", "executor", "input_files", "baseline", "probe_command", "validation_command"]),
@@ -792,6 +888,7 @@ def serve():
             method = request.get("method")
             if method == "initialize":
                 result = {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}},
+                          "instructions": MCP_INSTRUCTIONS,
                           "serverInfo": {"name": "harness2-local", "version": VERSION}}
             elif method == "ping":
                 result = {}

@@ -4,6 +4,7 @@
 verification/
 research/
 local-policy-review/
+local-native-review/
 dist/
 
 # Local configuration and credentials

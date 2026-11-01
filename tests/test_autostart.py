@@ -9,6 +9,7 @@ from __future__ import annotations
 import importlib.util
 import hashlib
 import json
+import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import sys
@@ -29,6 +30,10 @@ class AutoStartTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(prefix="h2-auto-contract-")
         self.addCleanup(self.tmp.cleanup)
+        isolated_home = Path(self.tmp.name).resolve() / "codex-home"
+        environment = patch.dict(os.environ, {"CODEX_HOME": str(isolated_home)})
+        environment.start()
+        self.addCleanup(environment.stop)
         self.project = Path(self.tmp.name).resolve() / "project"
         self.project.mkdir()
         self.task = "Implement arithmetic source verification and independent validation."
@@ -79,7 +84,7 @@ class AutoStartTests(unittest.TestCase):
         return sorted(folder.iterdir()) if folder.exists() else []
 
     def disk_task(self, assessment):
-        path = self.project / ".harness2/auto/tasks" / (assessment["task_key"] + ".json")
+        path = engine.auto_path(self.project / ".harness2", assessment["task_key"])
         return json.loads(path.read_text())
 
     def disk_run(self, run):
@@ -416,7 +421,7 @@ class AutoStartTests(unittest.TestCase):
         (self.project / "task.json").write_text('{"numbers": [20, 23]}')
         self.closeout(assessment, run)
         retained = self.disk_task(assessment)
-        path = self.project / ".harness2/auto/tasks" / (assessment["task_key"] + ".json")
+        path = engine.auto_path(self.project / ".harness2", assessment["task_key"])
         for field, value in (("run", "a" * 24), ("contract_sha256", "b" * 64),
                              ("inputs", {"task.json": "c" * 64}), ("attempt_id", "wrong-attempt")):
             with self.subTest(field=field):
@@ -447,7 +452,7 @@ class AutoStartTests(unittest.TestCase):
         (self.project / "task.json").write_text('{"numbers": [20, 23]}')
         self.closeout(assessment, run)
         retained = self.disk_task(assessment)
-        path = self.project / ".harness2/auto/tasks" / (assessment["task_key"] + ".json")
+        path = engine.auto_path(self.project / ".harness2", assessment["task_key"])
         for kind in ("not-dict", "missing-pointer"):
             with self.subTest(kind=kind):
                 changed = json.loads(json.dumps(retained))
@@ -507,7 +512,7 @@ class AutoStartTests(unittest.TestCase):
         self.closeout(assessment, run)
         value = self.disk_task(assessment)
         value["closeouts"]["outer-validation"]["contract_sha256"] = "0" * 64
-        path = self.project / ".harness2/auto/tasks" / (assessment["task_key"] + ".json")
+        path = engine.auto_path(self.project / ".harness2", assessment["task_key"])
         path.write_text(json.dumps(value))
         result = self.closeout(assessment, run, "cannot-mask-corruption")
         self.assertEqual(result["decision"], "blocked")
@@ -610,7 +615,7 @@ class AutoStartTests(unittest.TestCase):
         self.assertEqual(list(outside.iterdir()), [])
         (self.project / ".harness2/auto").unlink()
         assessment = self.assess()
-        path = self.project / ".harness2/auto/tasks" / (assessment["task_key"] + ".json")
+        path = engine.auto_path(self.project / ".harness2", assessment["task_key"])
         target = outside / "task.json"
         target.write_bytes(path.read_bytes())
         path.unlink()

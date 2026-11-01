@@ -7,10 +7,12 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -48,6 +50,9 @@ class EngineTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(prefix="h2-independent-test-")
         self.addCleanup(self.tmp.cleanup)
+        environment = patch.dict(os.environ, {"CODEX_HOME": str(Path(self.tmp.name).resolve() / "codex-home")})
+        environment.start()
+        self.addCleanup(environment.stop)
         self.project = Path(self.tmp.name) / "project"
         self.project.mkdir()
         self.write_inputs(self.project)

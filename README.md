@@ -14,17 +14,17 @@ An independent, local-first Harness² method adapter for Codex: propose, probe, 
 
 ## 功能
 
-- 每项开发目标先轻量评估；复杂任务或连续两轮实际实现失败时启动有界比较。
+- 启用开工规则后，每项开发目标先轻量评估，包括只改指定文件的小改；复杂任务或连续两轮实际实现失败时进入有界比较。
 - 固定 `k=1`：最多四个候选执行，使用相同输入与检查命令。
 - 同一目标沿用原 task/domain/task_key；同轮 test/lint 失败只计一次。
 - 保留输入、执行指导、产物、日志、哈希、失败和中断证据，禁止静默重放。
 - 独立最终验证后采纳组合方案，或在没有增益时保留通过的原方案。
-- 经验仅保存在本项目 `.harness2/`，不会自动写入全局或永久记忆。
-- v0.2.1 支持应用补丁后的显式验证收尾；未经验证的变更仍会阻断。
+- v0.3 将轻量任务元数据和锁移到 Codex 的项目隔离 sidecar，评估不改业务工作树；完整实验与经验仍保存在本项目 `.harness2/`。
+- 保留 v0.2.1 应用补丁后的显式验证收尾；未经验证的变更仍会阻断，不自动写入永久记忆。
 
 ## 环境
 
-- macOS 或 Linux，Python 3.10+；运行时只使用标准库，使用 POSIX 文件锁。
+- macOS 或 Linux，Python 3.11+；运行时只使用标准库，配置脚本使用 `tomllib`，文件锁使用 POSIX 接口。
 - 支持本地 plugins、skills 和 stdio MCP 的 Codex。
 - Git 用于克隆；不需要 API Key、额外模型服务或后台守护进程。
 
@@ -44,15 +44,111 @@ codex plugin add harness2-local@harness2-local-marketplace
 
 > 用 Harness² 对当前任务做一次有界比较，保留原方案、失败证据、独立验证和适用边界。
 
-安装插件本身不会修改全局开工规则。若你明确希望每个项目自动评估，可以先预览：
+### 原生 stdio MCP 注册
+
+如果桌面端需要直接注册原生 MCP，可使用用户配置 `config.toml` 路径。
+以下脚本只追加自己的 `[mcp_servers."harness2-local"]` 段，保留无关配置、
+未知字段和注释的原有字节。先生成预览：
+
+```bash
+python3 plugins/harness2-local/scripts/register_native_mcp.py \
+  --codex-bin /path/to/desktop/codex \
+  --evidence-dir ./local-native-review
+```
+
+审阅候选后，明确应用：
+
+```bash
+python3 plugins/harness2-local/scripts/register_native_mcp.py \
+  --codex-bin /path/to/desktop/codex \
+  --evidence-dir ./local-native-review --apply
+```
+
+默认目标是 `~/.codex/config.toml`；设置 `CODEX_HOME` 时使用该目录中的配置。
+脚本备份原配置，拒绝受管理的 config symlink、同名其他命令或冲突传输配置，
+检测到并发内容变化时停止。相同命令和参数已启用时保持幂等，不擅自启用已禁用的项。
+`--codex-bin` **仅作为报告 metadata**，脚本不启动该路径，不能据此证明桌面连接成功。
+实际 stdio 服务由 Python 和捆绑 server 路径启动；应用后在新 Codex 对话中刷新并核对工具。
+不要把包含个人配置的备份或审阅产物提交到公开仓库。
+
+### 无人值守工具授权（可选）
+
+注册服务不会默认放宽工具审批。若非交互会话返回
+`MCP tool call requires approval, but approval policy is never`，先核对该实例的授权；
+不要改成全局跳过审批。对于已审阅并明确授权的本地服务，可逐个工具预览配置：
+
+```bash
+python3 plugins/harness2-local/scripts/register_native_mcp.py \
+  --codex-bin /path/to/desktop/codex --evidence-dir ./local-native-review \
+  --approve-tools h2_context h2_assess h2_feedback
+```
+
+确认候选后，对同一命令增加 `--apply`。这仅追加列出工具的
+`mcp_servers."harness2-local".tools.<tool>.approval_mode = "approve"`，不改变其它服务
+或全局审批；已有显式策略会保留并阻断覆盖。简单任务只需要这三项。
+完整自动实验还涉及 `h2_start h2_status h2_propose h2_probe h2_adopt h2_reflect h2_recall`，
+需要分别明确授权；其中 `h2_probe` 和 `h2_adopt` 能执行调用者指定的本地检查命令，
+应在审阅该服务和执行范围后再授权。工具授权不扩大业务任务的权限。
+
+配置字段见 [Codex 官方配置参考](https://developers.openai.com/codex/config-reference)。
+
+### 可选开工规则
+
+安装插件或注册原生 MCP 本身不会修改全局开工规则。若你明确希望每个项目自动评估，可以先预览：
 
 ```bash
 python3 plugins/harness2-local/scripts/configure_autostart.py \
   --evidence-dir ./local-policy-review
 ```
 
-审阅生成的候选后，再决定是否用 `--apply` 写入。脚本会备份全局 AGENTS，
-保留无关规则并检查并发修改；不要把包含个人规则的候选提交到公开仓库。
+审阅生成的候选后，明确应用，并在新对话中加载规则：
+
+```bash
+python3 plugins/harness2-local/scripts/configure_autostart.py \
+  --evidence-dir ./local-policy-review --apply
+```
+
+脚本会备份全局 AGENTS，保留无关规则并检查并发修改；不要把包含个人规则的候选
+提交到公开仓库。自动门控依赖模型遵循规则和 MCP instructions，**不是强制 hooks**，
+不保证每次自然语言请求都自动触发。当前对话不会因写入规则文件而自动刷新；
+工具调用和实际执行证据仍需核对。
+
+### 可选会话门控
+
+当较长的 AGENTS 未被稳定执行时，可将同一简短门控配置为 Codex 原生
+`developer_instructions`，让每个新会话加载；无需每次传命令行覆盖：
+
+```bash
+python3 plugins/harness2-local/scripts/configure_session_gate.py \
+  --evidence-dir ./local-policy-review/session-gate
+```
+
+审阅 `developer-gate.candidate.md` 后，对同一命令增加 `--apply`。脚本只管理前端
+`HARNESS2_DEVELOPER_GATE` 标记块，保留其它配置原字节和字段，备份原文件；
+已有其它所有者的 `developer_instructions` 或歧义标记时拒绝覆盖。此步骤不改变工具审批。
+它是附加指令，仍受平台和用户授权约束，仍不是强制 hook；新对话需验证真实调用。
+
+## 存储与迁移
+
+`h2_context`、`h2_assess`、普通 `h2_feedback` 以及应用后 closeout 的任务记录写入：
+
+```text
+$CODEX_HOME/harness2-local/projects/<sha256(real project path)>/
+  project.json          项目身份
+  lock                  外部项目锁
+  auto/tasks/           目标、事件、失败计数和追加收尾记录
+```
+
+`CODEX_HOME` 默认 `~/.codex`；项目按解析后的真实绝对路径隔离。轻量接口返回
+`metadata_store` 和 `metadata_external: true`，不会为了评估在业务目录新建 `.harness2`。
+若 sidecar 本身落在业务项目内部，工具会拒绝；请使用项目外的 `CODEX_HOME`。
+完整实验的 run、快照、日志、产物和项目经验 library 仍保留在原项目 `.harness2/`，
+只有真正启动实验才需要写入这些实验目录；评估返回 `start` 本身不创建实验。
+
+旧版 `.harness2/auto/tasks/` 按需只读复制到 sidecar，保留原 events 和 closeouts，
+并记录 legacy 源文件原字节的 SHA-256。之后 legacy 源变化会阻断，需显式核对两份历史；
+不会自动覆盖或丢弃任一方事实。已有 `.harness2/lock` 只读获取同一锁以兼容旧客户端，
+不会为轻量调用新建项目锁。旧 run/library 不迁移、不重放。
 
 ## 使用流程
 
@@ -63,6 +159,10 @@ python3 plugins/harness2-local/scripts/configure_autostart.py \
 5. `h2_propose` 提出通用、领域和组合指导；每个候选重新执行，不能复制答案冒充独立执行。
 6. `h2_adopt` 运行独立最终验证；`h2_reflect` 保存证据支持的项目内经验。
 7. 主控审查并应用产物，运行项目原有检查，再报告外层验证结果。
+
+`simple`/`standard` 且未连续两轮独立实现验证失败时仅评估，继续普通开发，
+不调用 `h2_start`。复杂任务或两轮失败才进入实验；原任务范围、指定文件约束、
+项目所有权和发布门禁继续优先，不能由评估扩大授权。轻量 metadata 记录不是修改指定业务文件。
 
 这些工具负责状态和检查，**不会替你执行智能体**。只有运行检查器不算候选执行。
 目录隔离也不是 OS 沙箱；检查命令仍须遵守当前任务授权。
@@ -100,9 +200,14 @@ JSON
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v
 ```
 
-当前包含56项回归，覆盖状态顺序、重放保护、路径/符号链接、失败与 UNKNOWN、
-证据篡改、任务恢复、事件幂等、同轮失败归并、应用后收尾和旧版兼容。
-测试使用临时项目和确定性检查器，不调用模型、远端服务或安装命令。
+回归覆盖状态顺序、重放保护、路径/符号链接、失败与 UNKNOWN、证据篡改、任务恢复、
+事件幂等、同轮失败归并、应用后收尾、sidecar 迁移、业务树完整性及原生配置安全。
+测试使用隔离的临时项目、`CODEX_HOME` 和确定性检查器，不调用模型或远端服务。
+配置测试会运行真实注册脚本，但只针对临时配置；它不等同于原生桌面或自然语言触发验收。
+CI 配置检查 Python 3.11 和 3.13，具体通过结果以实际运行记录为准。
+
+v0.3 的真实四路迭代、六类原生触发验收与限制见
+[验证记录](docs/VALIDATION-0.3.0.md)。
 
 ## 仓库内容
 

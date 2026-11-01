@@ -1,6 +1,6 @@
 ---
 name: harness2
-description: "Automatically start for complex development tasks or two consecutive implementation-check failures in existing or new projects, after h2_assess selects start. Reuse verified project experience first. Skip simple tasks and avoid nested experiments. Also use when Harness2 or Harness² is requested."
+description: "Assess every workspace file edit, including README/docs/config and specified-file-only small changes, using h2_context then h2_assess before writing. Simple tasks skip four-way experiments, never assessment. Start Harness2 for complex tasks or two consecutive real implementation failures; reuse verified project experience. Also use when Harness2 or Harness² is requested."
 ---
 
 # Harness² for local Codex
@@ -8,10 +8,30 @@ description: "Automatically start for complex development tasks or two consecuti
 Apply Propose–Probe–Compose to the **execution harness** around the current
 model, then reflect across tasks. Use the user's language (Chinese by default).
 This plugin is an independent method adapter, not an official Google product
-or the upstream benchmark runner. It changes neither model weights nor global
-Codex instructions. Load [method mapping](references/method.md) for details.
+or the upstream benchmark runner. Runtime tools never change model weights or global
+Codex instructions. Explicit opt-in configuration scripts act only when requested. Load [method mapping](references/method.md) for details.
 
 ## Automatic kickoff and failure escalation
+
+每项工作区文件编辑都先评估，包括 README、文档、配置的一行小改。首次业务写入前，顺序取得原生 h2_context 与 h2_assess 的实际成功结果；只在心里判断或宣布评估不算完成。simple/standard 没有连续两轮实现失败时，只评估、正常修改验证并用 h2_feedback 留存结果，不调用 h2_start。
+“只改指定文件/其它文件不变/只在当前项目操作”约束业务工作树；已授权的原生评估服务只读取本项目，记录在 Codex 的按项目隔离 sidecar，不读取账户配置或凭据、不新增业务文件。用户若明确禁止任何目录外运行状态写入，尊重该限制并说明未记录，不能自行扩权。
+工具若延迟展示，先按 h2_context/h2_assess 名称查找当前可用工具目录。只有原生工具确实未加载才使用技能规定的同实现 CLI；权限拒绝时报告具体阻塞，不能换入口绕过或伪称已记录。其余任务身份、复杂度、失败归并与本项目经验规则沿用既有技能。
+
+
+Use native MCP server `harness2-local` first. For an instruction such as
+"only edit the specified file", still call `h2_context` and `h2_assess` before
+the edit: their metadata and locks live in a Codex-owned, project-hashed sidecar
+outside the business directory, so they create/change no business-tree files.
+`h2_feedback` uses the same sidecar. Respect the exact allowed business files;
+do not create test files or a four-way run for a simple task. A user explicitly
+forbidding all runtime-state writes outside the business tree still overrides
+the default; report that boundary instead of claiming a recorded assessment.
+
+Legacy project `.harness2/auto/tasks` is read-only. On use, facts/closeouts are
+copied with a hash binding; a later legacy change blocks reconciliation rather
+than silently dropping events. Full run artifacts and domain libraries retain
+their existing project-local paths. Preserve v0.2.1 post-apply validated_inputs
+closeout checks and never reapply an adopted patch.
 
 The user's global kickoff policy enables this workflow for both existing and
 new projects. At each new development goal or resumed goal, call `h2_assess`

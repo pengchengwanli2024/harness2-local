@@ -1,0 +1,181 @@
+{
+  "version": "0.3.0",
+  "date": "2026-11-02",
+  "license": "Apache-2.0",
+  "local_regression_tests_passed": 84,
+  "configured_executor": {
+    "host": "desktop-bundled Codex 0.166.0-alpha.5.1",
+    "requested_model": "gpt-6.1-sol",
+    "reasoning": "medium"
+  },
+  "native_tool_count": 10,
+  "final_live_cases": [
+    {
+      "case": "new-only-readme",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "native_rejected_calls": [],
+      "decision": "skip",
+      "experience_count": 0,
+      "assessment_before_business_edit": true,
+      "trigger_only": false,
+      "one_successful_start": null,
+      "preexisting_legacy_files_unchanged": true,
+      "no_four_way_run": true
+    },
+    {
+      "case": "new-only-code",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "native_rejected_calls": [],
+      "decision": "skip",
+      "experience_count": 0,
+      "assessment_before_business_edit": true,
+      "trigger_only": false,
+      "one_successful_start": null,
+      "preexisting_legacy_files_unchanged": true,
+      "no_four_way_run": true
+    },
+    {
+      "case": "existing-only-code",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "native_rejected_calls": [],
+      "decision": "skip",
+      "experience_count": 1,
+      "assessment_before_business_edit": true,
+      "trigger_only": false,
+      "one_successful_start": null,
+      "preexisting_legacy_files_unchanged": true,
+      "no_four_way_run": true
+    },
+    {
+      "case": "new-complex",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_start"
+      ],
+      "native_rejected_calls": [
+        "h2_start"
+      ],
+      "decision": "start",
+      "experience_count": 0,
+      "assessment_before_business_edit": true,
+      "trigger_only": true,
+      "one_successful_start": true,
+      "preexisting_legacy_files_unchanged": true,
+      "no_four_way_run": null
+    },
+    {
+      "case": "existing-complex",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_start"
+      ],
+      "native_rejected_calls": [],
+      "decision": "start",
+      "experience_count": 1,
+      "assessment_before_business_edit": true,
+      "trigger_only": true,
+      "one_successful_start": true,
+      "preexisting_legacy_files_unchanged": true,
+      "no_four_way_run": null
+    },
+    {
+      "case": "repeated-failure",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_start"
+      ],
+      "native_rejected_calls": [],
+      "decision": "start",
+      "experience_count": 0,
+      "assessment_before_business_edit": null,
+      "trigger_only": true,
+      "one_successful_start": true,
+      "preexisting_legacy_files_unchanged": true,
+      "no_four_way_run": null
+    }
+  ],
+  "comparison": [
+    {
+      "candidate": "baseline",
+      "passed": false,
+      "native_success_calls": [],
+      "assessment_before_edit": false,
+      "only_readme_changed": true,
+      "artifact_sha256": "d5372628afc775b29c14f4b54741f7ae15587a8fd209a8293fceb1ba13a9839c"
+    },
+    {
+      "candidate": "general",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "assessment_before_edit": true,
+      "only_readme_changed": true,
+      "artifact_sha256": "835af89046d7fcd66ffefd1b38cf3bb4971c71acca89163891cb8f0f91228bbf"
+    },
+    {
+      "candidate": "domain",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "assessment_before_edit": true,
+      "only_readme_changed": true,
+      "artifact_sha256": "bcbea6e736f8d554c1b8c3f0f6e68ea5879a448c065c3459a8bedabb3c4a1566"
+    },
+    {
+      "candidate": "composed",
+      "passed": true,
+      "native_success_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "assessment_before_edit": true,
+      "only_readme_changed": true,
+      "artifact_sha256": "1d8281ad41270f235d544a118bc3faa8dc7988205ea2fd2a4cc701fb0d87b2b9"
+    }
+  ],
+  "adopted": "composed",
+  "independent_validation": "passed",
+  "reflection_saved": true,
+  "proven_general_gain": false,
+  "candidate_loading": "baseline uses installed AGENTS; candidates add developer guidance per process",
+  "deployment_loading": "final six cases use persistent opt-in developer_instructions, no per-test override",
+  "earlier_environment_blocked_run_retained": true,
+  "earlier_agents_only_complex_miss_retained": true,
+  "historical_evidence_files_preserved": 15,
+  "private_runtime_or_config_published": false,
+  "limitations": [
+    "One bounded k=1 synthetic README comparison, not a model benchmark or universal gain.",
+    "Complex and repeated-failure acceptance cases stop immediately after successful native h2_start; they test triggering, not full business implementations.",
+    "Automatic routing follows model instructions and explicit per-tool trust; no enforced hook or background watcher.",
+    "Per-tool trust and developer gate are opt-in; installing the plugin alone does not change user policy.",
+    "Old permission refusals and missed-trigger evidence remain retained locally; no silent replay or fabricated adoption."
+  ]
+}

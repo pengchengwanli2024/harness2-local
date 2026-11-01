@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "harness2-local",
-  "version": "0.2.1+codex.20261102012235",
+  "version": "0.3.0",
   "description": "Evidence-guided Propose–Probe–Compose workflows for local Codex. Independent Harness² method adapter.",
   "author": {
     "name": "Local Tools"
