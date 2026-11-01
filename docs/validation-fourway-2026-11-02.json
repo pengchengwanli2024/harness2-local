@@ -1,0 +1,432 @@
+{
+  "date": "2026-11-02",
+  "plugin_version": "0.4.1",
+  "status": "passed",
+  "acceptance_cases": 4,
+  "automatic_kickoff_model_turns": 4,
+  "fresh_candidate_model_turns": 16,
+  "runs_per_goal": 1,
+  "k": 1,
+  "profile": {
+    "CODEX_HOME_isolated": false,
+    "hook_policy_overrides": false,
+    "foreign_hooks_disabled_by_test": false,
+    "frozen_enabled_trusted_hook_count": 11,
+    "hook_signature_sha256": "270c59ff7d39ff3b10f3c060ba38759e146e3cc49a4bf38e6c5bd3b345571f1d"
+  },
+  "cases": [
+    {
+      "case": "new-complex",
+      "project_kind": "new Git project",
+      "trigger": "complex cross-module behavior and contracts",
+      "task": "实现配置语言解析、schema校验与序列化，保证引号注释、转义、重复键位置及往返契约",
+      "domain": "config-language",
+      "task_key": "363812169e9dfc2116983fe1",
+      "task_identity_scope": "project namespace plus task_key",
+      "automatic_start_observed": true,
+      "native_start_and_successful_post_hook_bound_to_assessment": true,
+      "runs_created_for_goal": 1,
+      "existing_same_domain_experience_count": 0,
+      "bound_identity_preserved_across_all_executors_and_closeout": true,
+      "pre_binding_assessment_alias_records_retained": 0,
+      "four_way_execution_initiator": "acceptance-controller scheduling fresh model sessions after automatic kickoff",
+      "candidates": [
+        {
+          "candidate": "baseline",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "8997e24e69cf44a6ea890eee722fd3ac68ee3cff26742faa3a259bd01a02fcdc",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 82.284
+        },
+        {
+          "candidate": "general",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "de3b7f6c913403597e4fca7d1f0be66cae5ffdd7891a30a1321acb4a20f9e141",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 103.802
+        },
+        {
+          "candidate": "domain",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "43941f4ae38888a6f7e3165f2f2757da554ecd8014dcf6bcf6a2fad93fbb20be",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 88.684
+        },
+        {
+          "candidate": "composed",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "674bae2a1a76b37c48a9065b642d28e0d617dd38b1ed39afbcc860268bbe1e1d",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 77.728
+        }
+      ],
+      "adopted": "baseline",
+      "independent_validation": "passed",
+      "applied_outer_check": "passed",
+      "reported_outer_validation_closeout": "reuse",
+      "applied_business_hashes": {
+        "configkit/__init__.py": "4963175a6de0a62160f4c72de5aa9f899d7c456c383e824e12aa7a80196db29b",
+        "configkit/errors.py": "4af74926c72d2d92fe141bb6e7c818f80b78fd589dbfdd82d23d796364b4de1c",
+        "configkit/schema.py": "b1ec2b66e6810a7e5a8285cb94bf760a6e30f7934b36455dd5f5cec254b21900",
+        "configkit/parser.py": "453789003a03685b5cabeb5f25181db4fa9b54762ef46ef5fe37725e763ab0a1",
+        "configkit/codec.py": "5c1aa182c65fb76fa736b581bcb94372da2dde3a64cd6f4cb5a04f6f15e2b3c2"
+      },
+      "legacy_records_and_dirty_work_unchanged": true
+    },
+    {
+      "case": "existing-complex",
+      "project_kind": "existing Git history with verified legacy run and dirty work",
+      "trigger": "complex cross-module behavior and contracts",
+      "task": "兼容现有 legacy_reader.py 并实现 configkit 的多模块 JSON 标量解析、引号感知注释、重复键定位与稳定往返契约",
+      "domain": "config-parser",
+      "task_key": "cfbd8f42e8cad2203e897793",
+      "task_identity_scope": "project namespace plus task_key",
+      "automatic_start_observed": true,
+      "native_start_and_successful_post_hook_bound_to_assessment": true,
+      "runs_created_for_goal": 1,
+      "existing_same_domain_experience_count": 1,
+      "bound_identity_preserved_across_all_executors_and_closeout": true,
+      "pre_binding_assessment_alias_records_retained": 1,
+      "four_way_execution_initiator": "acceptance-controller scheduling fresh model sessions after automatic kickoff",
+      "candidates": [
+        {
+          "candidate": "baseline",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "32bf3627245a843d8d2b80606fa58572c7fb1407926ca502bee4d992d27d275e",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 94.244
+        },
+        {
+          "candidate": "general",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "dbbe9ac5f36a10d34674ef7256cee7d662a60a425cba88fbbe7808f97d990fef",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 88.609
+        },
+        {
+          "candidate": "domain",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "36fea12ecc93d121e7a122ca814b97f6ec0755a6748dd35a6004fbf862171ece",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 84.785
+        },
+        {
+          "candidate": "composed",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "e2375bd84f3781f6275090d218b5a4e462b8f05188f763fcdc886dff3327579f",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 85.287
+        }
+      ],
+      "adopted": "baseline",
+      "independent_validation": "passed",
+      "applied_outer_check": "passed",
+      "reported_outer_validation_closeout": "reuse",
+      "applied_business_hashes": {
+        "configkit/__init__.py": "ed6b3abe78a175888d1be8218e1ded0ea67693cbef89234e7bd2472fa5cc65c3",
+        "configkit/errors.py": "94f19dc2ad513e45e56c73263729adb32178ff0d3fbd208cbea3ed37e40e30f6",
+        "configkit/schema.py": "defdf05a84daeb40ac5748d201b252b3489f4538211436ec532cd45bfbb21f54",
+        "configkit/parser.py": "4be11337a2cc20579be35fcd1f6b4d09b049b50cbf05c8b4ccf84e76e5aa9a01",
+        "configkit/codec.py": "71235d624f5533a7beb1a77b7fa0f809eb7ac79ff53501aa0530e53b2d390bda"
+      },
+      "legacy_records_and_dirty_work_unchanged": true
+    },
+    {
+      "case": "new-two-failures",
+      "project_kind": "new Git project",
+      "trigger": "two controlled real failed implementation attempts",
+      "task": "修复 answer.py 的平方计算边界错误",
+      "domain": "python-functions",
+      "task_key": "14eab6db4967434f85856e01",
+      "task_identity_scope": "project namespace plus task_key",
+      "automatic_start_observed": true,
+      "native_start_and_successful_post_hook_bound_to_assessment": true,
+      "runs_created_for_goal": 1,
+      "existing_same_domain_experience_count": 0,
+      "bound_identity_preserved_across_all_executors_and_closeout": true,
+      "pre_binding_assessment_alias_records_retained": 0,
+      "four_way_execution_initiator": "acceptance-controller scheduling fresh model sessions after automatic kickoff",
+      "candidates": [
+        {
+          "candidate": "baseline",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "5ad5a33f2681f1685b781b16a5239d9a31e530110371caa3bc873e8fde9f64b6",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 49.59
+        },
+        {
+          "candidate": "general",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "0c1856976f6fb6f399cdea70f65d6490ddd4343413388a1131b4cf8820a4a4ec",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 56.657
+        },
+        {
+          "candidate": "domain",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "a7fa8db36e2ffe936e7db44bf6906b2dfff2705f6878406434f649a0d52305db",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 49.091
+        },
+        {
+          "candidate": "composed",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "13adf315866f1366bcad16901b0396626304b0f97dab73fe8521bd0247749094",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 48.386
+        }
+      ],
+      "adopted": "baseline",
+      "independent_validation": "passed",
+      "applied_outer_check": "passed",
+      "reported_outer_validation_closeout": "reuse",
+      "applied_business_hashes": {
+        "answer.py": "4e712fa266f44fc8af7c54c32b9377f8c8e7914ff4d05cad8536bb4631c11d6a"
+      },
+      "legacy_records_and_dirty_work_unchanged": true,
+      "controlled_failure_chain": {
+        "performed_and_reported_by": "actual kickoff model session, not controller feedback",
+        "initial_route": "skip",
+        "after_first_failure": {
+          "decision": "skip",
+          "streak": 1,
+          "run": null
+        },
+        "after_second_failure": {
+          "decision": "start",
+          "streak": 2,
+          "reason": "consecutive_failures"
+        },
+        "unchanged_original_identity": true,
+        "complexity_remained_simple_or_standard": true,
+        "distinct_failed_source_hashes": [
+          "6739e1f10fd0cd1107f381d96df60022c9d03bfa4872e5b828c52b93ee767a10",
+          "aa4e0d2346262fb00afbc75980b43c057b7f04308870e447955336b5d8090590"
+        ],
+        "actual_checker_exit_codes": [
+          1,
+          1
+        ],
+        "failure_exception_types": [
+          "AssertionError",
+          "AssertionError"
+        ],
+        "original_failed_event_count_retained_after_success": 2,
+        "current_streak_after_success": 0,
+        "not_a_claim_of_naturally_occurring_model_defects": true
+      }
+    },
+    {
+      "case": "existing-two-failures",
+      "project_kind": "existing Git history with verified legacy run and dirty work",
+      "trigger": "two controlled real failed implementation attempts",
+      "task": "修复 answer.py 的平方计算边界错误",
+      "domain": "python-functions",
+      "task_key": "14eab6db4967434f85856e01",
+      "task_identity_scope": "project namespace plus task_key",
+      "automatic_start_observed": true,
+      "native_start_and_successful_post_hook_bound_to_assessment": true,
+      "runs_created_for_goal": 1,
+      "existing_same_domain_experience_count": 1,
+      "bound_identity_preserved_across_all_executors_and_closeout": true,
+      "pre_binding_assessment_alias_records_retained": 0,
+      "four_way_execution_initiator": "acceptance-controller scheduling fresh model sessions after automatic kickoff",
+      "candidates": [
+        {
+          "candidate": "baseline",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "777a45a783bc30d95b6227f7d385a7a2c843fa2d400b135b545fdb1618cca52b",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 56.073
+        },
+        {
+          "candidate": "general",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "40a1ed4d3c203362073bdcd21930dcad339d6e6db3708543ac8e58382c407c17",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 56.317
+        },
+        {
+          "candidate": "domain",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "4b4761c25bb202a2992f37eecbb2d3f6d69bdfc9e9735d13fe09817bc863837f",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 45.332
+        },
+        {
+          "candidate": "composed",
+          "probe_status": "passed",
+          "reported_model": {
+            "model": "gpt-6.1-sol",
+            "modelProvider": "openai",
+            "reasoningEffort": "medium"
+          },
+          "prompt_sha256": "c70741041466fe63066a188468d29f3b1875c7cd0e11abb9e93d25b5a718c8bf",
+          "fresh_model_session": true,
+          "verified_parent_run_mapping": true,
+          "frozen_inputs_unchanged": true,
+          "seconds": 51.397
+        }
+      ],
+      "adopted": "baseline",
+      "independent_validation": "passed",
+      "applied_outer_check": "passed",
+      "reported_outer_validation_closeout": "reuse",
+      "applied_business_hashes": {
+        "answer.py": "4e712fa266f44fc8af7c54c32b9377f8c8e7914ff4d05cad8536bb4631c11d6a"
+      },
+      "legacy_records_and_dirty_work_unchanged": true,
+      "controlled_failure_chain": {
+        "performed_and_reported_by": "actual kickoff model session, not controller feedback",
+        "initial_route": "skip",
+        "after_first_failure": {
+          "decision": "skip",
+          "streak": 1,
+          "run": null
+        },
+        "after_second_failure": {
+          "decision": "start",
+          "streak": 2,
+          "reason": "consecutive_failures"
+        },
+        "unchanged_original_identity": true,
+        "complexity_remained_simple_or_standard": true,
+        "distinct_failed_source_hashes": [
+          "6739e1f10fd0cd1107f381d96df60022c9d03bfa4872e5b828c52b93ee767a10",
+          "aa4e0d2346262fb00afbc75980b43c057b7f04308870e447955336b5d8090590"
+        ],
+        "actual_checker_exit_codes": [
+          1,
+          1
+        ],
+        "failure_exception_types": [
+          "AssertionError",
+          "AssertionError"
+        ],
+        "original_failed_event_count_retained_after_success": 2,
+        "current_streak_after_success": 0,
+        "not_a_claim_of_naturally_occurring_model_defects": true
+      }
+    }
+  ],
+  "original_plugin_code_unchanged": true,
+  "older_evidence_files_hash_checked_unchanged": 20188,
+  "composition_observation": {
+    "composed_command_traces_referencing_shared_tmp": 0,
+    "quality_gain_established": false
+  },
+  "retained_nonpassing_controls": [
+    "Initial controller preflight assumed 14 hooks but the current real configuration exposes 11. No model or new experiment ran in those rejected controls; actual signatures were frozen without changing hook policy."
+  ],
+  "limits": [
+    "Controlled bad implementations are fault injection, not observed spontaneous model defects.",
+    "The model automatically started each run; the acceptance controller then scheduled four independent executions. This is not a claim that the kickoff model autonomously finished all four.",
+    "One existing complex kickoff normalized a provisional description to the frozen TASK identity before binding; both assessment records remain retained. Bound-run and failure-chain identities were preserved.",
+    "All retained outcomes describe these synthetic fixtures and this installed profile, not a universal model-quality gain or OS sandbox."
+  ]
+}
