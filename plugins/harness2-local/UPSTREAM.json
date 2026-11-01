@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/google-research/harness2",
+  "commit": "1cfe254e8d25b15f37048c3730134686abe60335",
+  "reviewed_at": "2026-11-01",
+  "integration": "independent-method-adapter",
+  "runtime_code_copied": false,
+  "benchmark_gain_claimed": false
+}

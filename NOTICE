@@ -1,0 +1,6 @@
+Harness² Local is an independent local Codex method adapter.
+Method source: Google Research, Harness², Copyright 2026 Google LLC.
+https://github.com/google-research/harness2
+Pinned commit: 1cfe254e8d25b15f37048c3730134686abe60335
+No upstream runtime code is included. Not an officially supported Google product.
+Adapter source is provided under Apache License 2.0.

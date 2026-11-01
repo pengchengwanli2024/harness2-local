@@ -1,0 +1,23 @@
+# Project-local executions, evidence and personal policy candidates
+.harness2/
+**/.harness2/
+verification/
+research/
+local-policy-review/
+dist/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+auth.json
+config.toml
+*.pem
+*.key
+
+# Generated files
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+*.log

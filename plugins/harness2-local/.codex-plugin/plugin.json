@@ -1,0 +1,32 @@
+{
+  "name": "harness2-local",
+  "version": "0.2.1+codex.20261102012235",
+  "description": "Evidence-guided Propose–Probe–Compose workflows for local Codex. Independent Harness² method adapter.",
+  "author": {
+    "name": "Local Tools"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "harness2",
+    "codex",
+    "workflow",
+    "propose-probe-compose",
+    "local"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Harness² Local",
+    "shortDescription": "用真实执行证据改进 Codex 工作流",
+    "longDescription": "以原方案、通用候选、领域候选和组合方案的真实任务执行进行有界比较，保留产物、失败证据、回退基线和项目内经验。",
+    "developerName": "Local Tools",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": "用 Harness² 对当前任务进行一次有界比较、验证并保留可复用经验。",
+    "logo": "./assets/icon.svg",
+    "composerIcon": "./assets/icon.svg"
+  }
+}

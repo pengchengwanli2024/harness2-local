@@ -1,0 +1,20 @@
+{
+  "name": "harness2-local-marketplace",
+  "interface": {
+    "displayName": "Harness² Local"
+  },
+  "plugins": [
+    {
+      "name": "harness2-local",
+      "source": {
+        "source": "local",
+        "path": "./plugins/harness2-local"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

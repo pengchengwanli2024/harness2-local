@@ -1,0 +1,6 @@
+interface:
+  display_name: "Harness² Local"
+  short_description: "复杂任务与连续失败自动触发，优先复用项目经验"
+  default_prompt: "评估当前开发任务，按需启动 Harness²，并优先使用本项目已验证的经验。"
+policy:
+  allow_implicit_invocation: true

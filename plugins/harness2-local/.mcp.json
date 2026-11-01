@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "harness2-local": {
+      "command": "python3",
+      "args": [
+        "./server/harness2_local.py",
+        "--stdio"
+      ],
+      "cwd": "."
+    }
+  }
+}
