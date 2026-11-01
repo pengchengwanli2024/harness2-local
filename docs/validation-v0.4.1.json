@@ -1,7 +1,7 @@
 {
   "version": "0.4.1",
   "date": "2026-11-02",
-  "status": "implemented-local-verified-service-activation-pending",
+  "status": "verified-real-global-profile",
   "local_regressions_passed": 137,
   "actual_installed_cognee": "1.6.5",
   "actual_installed_enola_cli": "0.4.30",
@@ -22,12 +22,39 @@
         "README.md"
       ]
     },
-    "new_git_and_existing_git_full_acceptance": "pending shared-service activation"
+    "new_git_and_existing_git_full_acceptance": "passed, including completed actual code-index pipelines",
+    "new_git_code": {
+      "passed": true,
+      "native_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "decision": "skip",
+      "h2_start_called": false,
+      "changed": [
+        "arithmetic.py"
+      ],
+      "legacy_harness2_and_dirty_work_unchanged": true
+    },
+    "existing_git_code": {
+      "passed": true,
+      "native_calls": [
+        "h2_context",
+        "h2_assess",
+        "h2_feedback"
+      ],
+      "decision": "skip",
+      "h2_start_called": false,
+      "changed": [
+        "arithmetic.py"
+      ],
+      "legacy_harness2_and_dirty_work_unchanged": true
+    }
   },
-  "shared_service_restarted": false,
-  "service_activation_verified": false,
-  "execution_acceptance_verified": false,
-  "reason": "Another project has a live connection to the shared Cognee server; bounded restart requires coordination.",
+  "shared_service_restarted": true,
+  "service_activation_verified": true,
+  "execution_acceptance_verified": true,
   "prior_evidence_files_unchanged": 20049,
   "unrelated_config_and_foreign_hooks_preserved": true,
   "private_evidence_published": false,
@@ -39,8 +66,38 @@
   "limits": [
     "Optional server adapter requires a new Cognee service process; installation alone is not activation.",
     "Core Harness2 remains stdlib; repository YAML validation in optional adapter requires PyYAML.",
-    "Async snapshot binding lost by an incompatible pipeline fails closed; actual target pipeline verification is pending.",
+    "Async snapshot binding lost by an incompatible pipeline fails closed; the tested installed target pipeline passed with the binding retained.",
     "Git metadata is excluded from source snapshots; unsupported configs are rejected.",
-    "No universal model-quality improvement or OS-level enforcement claim."
+    "No universal model-quality improvement or OS-level enforcement claim.",
+    "Other previously connected clients were not impersonated or force-re-registered; they resume through their own normal lifecycle. The actual maintenance session resumed normally."
+  ],
+  "shared_restart_approved": true,
+  "cognee_pipeline_checks": [
+    {
+      "case": "new-git-code",
+      "passed": true,
+      "pipeline_status": "completed",
+      "data_rows": 1,
+      "existing_data_ids_preserved": true,
+      "repository_identity_and_real_path_preserved": true,
+      "changed_after_pipeline_completion": [
+        "arithmetic.py"
+      ],
+      "legacy_enola_bytes_modes_mtimes_unchanged": true,
+      "final_fingerprint_matches": true
+    },
+    {
+      "case": "existing-git-code",
+      "passed": true,
+      "pipeline_status": "completed",
+      "data_rows": 1,
+      "existing_data_ids_preserved": true,
+      "repository_identity_and_real_path_preserved": true,
+      "changed_after_pipeline_completion": [
+        "arithmetic.py"
+      ],
+      "legacy_enola_bytes_modes_mtimes_unchanged": true,
+      "final_fingerprint_matches": true
+    }
   ]
 }

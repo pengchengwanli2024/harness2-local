@@ -171,6 +171,9 @@ python3 plugins/harness2-local/scripts/configure_forced_hooks.py \
 不会再次触发 Pre；同步 prompt intake 在模型继续前记录轻量评估。hosted/部分专用路径、
 关闭 hooks、旧的未刷新会话或宿主进程被杀，不属于完整强制边界。其它插件自己的 hook
 副作用也不由本插件控制。实际验证范围与失败保留见 [v0.4 验证](docs/VALIDATION-0.4.0.md)。
+v0.4.1 的可选 Cognee/Enola 适配器已通过真实全局配置下的新旧 Git 项目与非 Git
+项目验收：简单任务先评估、不启动四路实验，实际索引完成后仍只改变指定文件，
+旧 `.enola` 和数据身份保留。见 [共存验收](docs/VALIDATION-0.4.1.md)。
 
 ## 存储与迁移
 
