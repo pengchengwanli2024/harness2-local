@@ -300,7 +300,9 @@ class ForcedHookTests(unittest.TestCase):
         value["payload"]["projects"] = {}
         corrupted = (json.dumps(value) + "\n").encode()
         receipt.write_bytes(corrupted)
-        self.assert_denied(self.pre())
+        denied = self.pre()
+        self.assert_denied(denied)
+        self.assertIn("RECEIPT_INTEGRITY_ERROR", denied[0].stdout)
         self.assert_denied(self.hook(self.event("Stop")))
         self.assertEqual(receipt.read_bytes(), corrupted)
         self.assertEqual(tree(self.project), before)
@@ -538,6 +540,9 @@ class ForcedHookTests(unittest.TestCase):
         tasks_before = sorted(str(p.relative_to(self.home)) for p in self.home.rglob("auto/tasks/*.json"))
         for working in (workspace, child):
             self.assert_allowed(self.pre(arguments={"command": "python3 -c 'print(42)'", "workdir": str(working)}))
+            native = self.pre("mcp__harness2_local__h2_context", {"project": str(working)}, project=working)
+            self.assert_denied(native)
+            self.assertIn("PROJECT_MUST_BE_PARENT_PROJECT_ROOT", native[0].stdout)
         self.assertEqual(sorted(str(p.relative_to(self.home)) for p in self.home.rglob("project.json")), metadata_before)
         self.assertEqual(sorted(str(p.relative_to(self.home)) for p in self.home.rglob("auto/tasks/*.json")), tasks_before)
         self.assertEqual(len(list((self.project / ".harness2/runs").iterdir())), 1)
@@ -608,6 +613,92 @@ class ForcedHookTests(unittest.TestCase):
         self.assert_denied(self.hook(unrelated))
         self.assertEqual(tree(self.project), before)
         self.assertFalse((self.project / ".harness2").exists())
+
+    def test_bad_project_selection_is_actionable_and_does_not_poison_native_recovery(self):
+        inside_state = self.home / "nested"
+        inside_state.mkdir()
+        before = tree(self.project)
+        invalid = [(str(self.base), "PROJECT_OVERLAPS_CODEX_HOME"),
+                   (str(self.home), "PROJECT_OVERLAPS_CODEX_HOME"),
+                   (str(inside_state), "PROJECT_OVERLAPS_CODEX_HOME"),
+                   (str(Path.home().resolve()), "PROJECT_IS_HOME_OR_ANCESTOR"),
+                   ("relative-project", "PROJECT_MUST_BE_ABSOLUTE"),
+                   (str(self.base / "missing-private-fixture"), "PROJECT_DIRECTORY_MISSING"),
+                   (None, "PROJECT_REQUIRED")]
+        for directory, code in invalid:
+            with self.subTest(code=code, directory=directory):
+                result = self.pre("mcp__harness2_local__h2_context", {"project": directory})
+                self.assert_denied(result)
+                reason = result[1]["hookSpecificOutput"]["permissionDecisionReason"]
+                self.assertIn("PROJECT_SELECTION_REQUIRED", reason)
+                self.assertIn(code, reason)
+                self.assertIn("h2_context", reason)
+                self.assertIn("workdir", reason)
+                self.assertNotIn("Restore the reviewed hook", reason)
+                self.assertNotIn("missing-private-fixture", reason)
+        self.assertEqual(tree(self.project), before)
+        self.assertFalse(list(self.home.rglob("project.json")), "Invalid roots must not create project metadata")
+        self.pair()
+        self.assert_allowed(self.pre())
+
+    def test_home_question_without_project_work_does_not_create_a_phantom_stop_obligation(self):
+        prompt = self.event("UserPromptSubmit", prompt="解释一个术语，无需使用工具。")
+        prompt["cwd"] = str(self.base)
+        self.assert_allowed(self.hook(prompt))
+        self.assert_allowed(self.hook({**prompt, "hook_event_name": "Stop"}))
+        self.assertFalse(list(self.home.rglob("project.json")))
+
+    def test_runtime_hash_failures_are_distinguished_from_directory_and_receipt_errors(self):
+        event = self.event("PreToolUse", tool_name="mcp__harness2_local__h2_context",
+                           tool_input={"project": str(self.project)})
+        for flag, code in (("--expect-self-sha", "GATE_HASH_MISMATCH"),
+                           ("--expect-engine-sha", "ENGINE_HASH_MISMATCH")):
+            with self.subTest(code=code):
+                result = self.hook(event, flag, "0" * 64)
+                self.assert_denied(result)
+                reason = result[1]["hookSpecificOutput"]["permissionDecisionReason"]
+                self.assertIn("RUNTIME_INTEGRITY_ERROR", reason)
+                self.assertIn(code, reason)
+                self.assertNotIn("PROJECT_SELECTION_REQUIRED", reason)
+        missing = self.hook(event, "--engine", str(self.base / "missing-engine.py"))
+        self.assert_denied(missing)
+        self.assertIn("RUNTIME_FILE_UNAVAILABLE", missing[0].stdout)
+        self.assertFalse(list(self.home.rglob("project.json")))
+
+    def test_native_git_subdirectory_is_rejected_before_engine_metadata_then_root_recovers(self):
+        init = subprocess.run(["git", "-C", str(self.project), "init", "-q"],
+                              capture_output=True, text=True)
+        self.assertEqual(init.returncode, 0, init.stderr)
+        child = self.project / "src"
+        child.mkdir()
+        before = tree(self.project)
+        result = self.pre("mcp__harness2_local__h2_context", {"project": str(child)})
+        self.assert_denied(result)
+        self.assertIn("PROJECT_MUST_BE_GIT_ROOT", result[0].stdout)
+        self.assertFalse(list(self.home.rglob("project.json")))
+        self.assertEqual(tree(self.project), before)
+        self.pair()
+        self.assert_allowed(self.pre(arguments={"command": "pwd", "workdir": str(child)}))
+
+    def test_receipt_records_verified_runtime_fingerprints_for_deployment_diagnosis(self):
+        self.prompt()
+        receipt = (self.home / "harness2-local/hook-gates"
+                   / hashlib.sha256(self.session.encode()).hexdigest()
+                   / (hashlib.sha256(self.turn.encode()).hexdigest() + ".json"))
+        wrapped = json.loads(receipt.read_text())
+        for event in wrapped["payload"]["events"]:
+            self.assertEqual(event["gate_sha256"], hashlib.sha256(GATE.read_bytes()).hexdigest())
+            self.assertEqual(event["engine_sha256"], hashlib.sha256(ENGINE_PATH.read_bytes()).hexdigest())
+
+    def test_unknown_validation_failure_reports_stage_without_echoing_private_input(self):
+        sentinel = "private-fixture-do-not-echo-6dc3"
+        event = self.event("PreToolUse", tool_name="Bash", tool_input={"command": sentinel}, prompt=sentinel)
+        event.pop("turn_id")
+        result = self.hook(event)
+        self.assert_denied(result)
+        self.assertIn("GATE_VALIDATION_ERROR", result[0].stdout)
+        self.assertIn("stage=request", result[0].stdout)
+        self.assertNotIn(sentinel, result[0].stdout + result[0].stderr)
 
     def test_home_session_explicit_project_never_bypasses_tampered_candidate_cwd(self):
         self.prompt(text="升级真实复杂契约并在父项目内绑定实验。")

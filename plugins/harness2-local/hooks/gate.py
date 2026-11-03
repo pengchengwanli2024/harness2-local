@@ -26,6 +26,18 @@ class WorkspaceIntegrity(Exception):
     pass
 
 
+class ProjectSelectionError(ValueError):
+    """Recoverable caller error; never describe it as a broken hook."""
+
+
+class RuntimeIntegrity(ValueError):
+    pass
+
+
+class ReceiptIntegrity(ValueError):
+    pass
+
+
 LIMIT = 2 * 1024 * 1024
 LIGHT = {'h2_context', 'h2_assess', 'h2_recall', 'h2_status'}
 CONTROL = {'exec', 'functions.exec', 'tool_search', 'search_tool', 'load_tool_prefix',
@@ -76,19 +88,40 @@ def atomic(path, value):
 
 
 def read_state(path, session, turn):
-    no_links(path)
-    require(path.is_file() and path.stat().st_size <= LIMIT)
-    wrapped = json.loads(path.read_bytes())
-    value = wrapped['payload']
-    require(wrapped['sha256'] == sha(canonical(value)))
-    require(value['schema'] == 1 and value['session'] == session and value['turn'] == turn)
-    return value
+    try:
+        no_links(path)
+        require(path.is_file() and path.stat().st_size <= LIMIT)
+        wrapped = json.loads(path.read_bytes())
+        value = wrapped['payload']
+        require(wrapped['sha256'] == sha(canonical(value)))
+        require(value['schema'] == 1 and value['session'] == session and value['turn'] == turn)
+        return value
+    except (ValueError, OSError, KeyError, TypeError) as exc:
+        raise ReceiptIntegrity('RECEIPT_INVALID') from exc
+
+
+def selected_directory(value):
+    if not isinstance(value, str) or not value.strip():
+        raise ProjectSelectionError('PROJECT_REQUIRED')
+    p = Path(value).expanduser()
+    if not p.is_absolute():
+        raise ProjectSelectionError('PROJECT_MUST_BE_ABSOLUTE')
+    try:
+        if not p.is_dir():
+            raise ProjectSelectionError('PROJECT_DIRECTORY_MISSING')
+        p = p.resolve()
+    except OSError as exc:
+        raise ProjectSelectionError('PROJECT_DIRECTORY_UNAVAILABLE') from exc
+    if Path.home().resolve().is_relative_to(p):
+        raise ProjectSelectionError('PROJECT_IS_HOME_OR_ANCESTOR')
+    codex = home_path().resolve()
+    if codex.is_relative_to(p) or p.is_relative_to(codex):
+        raise ProjectSelectionError('PROJECT_OVERLAPS_CODEX_HOME')
+    return p
 
 
 def project(value):
-    p = Path(value).expanduser()
-    require(p.is_absolute() and p.is_dir())
-    p = p.resolve()
+    p = selected_directory(value)
     try:
         env = dict(os.environ, GIT_CONFIG_NOSYSTEM='1', GIT_CONFIG_GLOBAL=os.devnull, GIT_OPTIONAL_LOCKS='0')
         result = subprocess.run(['git', '-C', str(p), 'rev-parse', '--show-toplevel'], capture_output=True,
@@ -99,9 +132,9 @@ def project(value):
                 p = candidate
     except (OSError, subprocess.TimeoutExpired):
         pass
-    # A home-wide workspace would contain its own sidecar: it is not a project.
-    require(not home_path().resolve().is_relative_to(p))
-    return p
+    # Check again after Git-root normalization; neither ancestors nor descendants
+    # of CODEX_HOME are business projects. Never remap a caller to another root.
+    return selected_directory(str(p))
 
 
 def native_name(value):
@@ -141,9 +174,7 @@ def candidate_workspace(path):
 
 
 def scoped_project(engine, value, state):
-    raw = Path(value).expanduser()
-    require(raw.is_absolute() and raw.is_dir())
-    raw = raw.resolve()
+    raw = selected_directory(value)
     ancestor = candidate_workspace(raw)
     if ancestor is not None:
         run_id = ancestor.parent.parent.name
@@ -165,14 +196,14 @@ def scoped_project(engine, value, state):
 
 def target_project(engine, event, state, inp, native):
     value = inp.get('project') if native else (inp.get('workdir') or inp.get('cwd'))
+    if native and not value:
+        raise ProjectSelectionError('PROJECT_REQUIRED')
     if not value:
         if not native and event.get('tool_name') in ('Bash', 'exec_command', 'shell_command', 'shell'):
             value = event.get('cwd')  # Commands without workdir actually run in the session cwd.
         else:
             value = state.get('current_project') or event.get('cwd')
-    require(isinstance(value, str))
-    selected = Path(value).expanduser()
-    require(selected.is_absolute())
+    selected = selected_directory(value)
     # Only a real candidate-shaped session cwd needs separate parent-run checks.
     # An unrelated HOME-wide cwd must not veto an explicitly selected project.
     if event.get('cwd'):
@@ -182,8 +213,15 @@ def target_project(engine, event, state, inp, native):
         if candidate_workspace(session_cwd) is not None:
             session_root = scoped_project(engine, str(session_cwd), state)
             if selected.resolve() == session_cwd:
+                if native:
+                    raise ProjectSelectionError('PROJECT_MUST_BE_PARENT_PROJECT_ROOT')
                 return session_root
-    return scoped_project(engine, value, state)
+    root = scoped_project(engine, value, state)
+    if native and root != selected:
+        code = ('PROJECT_MUST_BE_PARENT_PROJECT_ROOT' if candidate_workspace(selected) is not None
+                else 'PROJECT_MUST_BE_GIT_ROOT')
+        raise ProjectSelectionError(code)
+    return root
 
 
 def automatic_preflight(engine, root, state):
@@ -214,6 +252,9 @@ def instruction(root=None):
     return ('Harness² 强制开工门禁：本轮必须先成功调用原生 h2_context，再调用原生 h2_assess，'
             'project=' + place + '。两次真实成功结果经 PostToolUse 复核后，才放行业务工具；'
             '心里判断、旧轮次结果或命令行备用调用不能生成原生门禁凭据。'
+            '不要把HOME、CODEX_HOME或CODEX_HOME的父/子目录用作project；聊天cwd为HOME时，'
+            '仍应显式选择具体已有工作目录，并在后续命令中设置相同workdir。'
+            'Git项目的原生project使用仓库根目录，实验候选使用已绑定的父项目根目录。'
             '按上下文恢复原 task/domain/task_key；新目标使用稳定描述，先复用本项目可信经验。'
             'simple/standard且无连续两次失败返回skip：正常实现和反馈，禁止h2_start。'
             '返回start：先读技能；启动前仅可用单条cat/rg --no-config/ls/pwd读取（不使用自定义shell/env或login=true），或apply_patch在项目'
@@ -228,6 +269,35 @@ def deny(event, reason):
     if event in ('UserPromptSubmit', 'Stop'):
         return {'decision': 'block', 'reason': reason}
     return {'systemMessage': reason}
+
+
+def failure_reason(exc, stage):
+    # Only fixed codes and exception classes leave the hook. Exception messages
+    # can contain paths, raw tool inputs or credentials and must not be echoed.
+    if isinstance(exc, ProjectSelectionError):
+        return ('Harness² PROJECT_SELECTION_REQUIRED (' + str(exc) + '): '
+                '项目目录选择不符合范围要求；这不表示钩子损坏。'
+                '选择具体已有工作目录；不能选择HOME及其父目录、CODEX_HOME及其父/子目录。'
+                'Git项目的原生project必须是仓库根目录；实验候选必须使用已绑定的父项目根目录。'
+                '保持同一目标身份，以该目录重新调用原生h2_context、h2_assess，后续命令显式设置workdir。'
+                '不要因此修改钩子、删除收据或切换CLI绕过门禁。')
+    if isinstance(exc, RuntimeIntegrity):
+        return ('Harness² RUNTIME_INTEGRITY_ERROR (' + str(exc) + '): '
+                '已安装门禁或引擎文件缺失、不可读或与固定哈希不符，当前操作被拒绝。'
+                '保留旧运行包与失败证据，通过受审阅安装器部署并信任新定义；'
+                '不要手改预期哈希或覆盖旧包。')
+    if isinstance(exc, ReceiptIntegrity):
+        return ('Harness² RECEIPT_INTEGRITY_ERROR: 门禁收据损坏、过期或结构不合法，当前操作被拒绝。'
+                '保留原始收据与UNKNOWN证据，先进行受控诊断；不要删除收据制造通过。')
+    if isinstance(exc, GateDeadline):
+        return ('Harness² GATE_TIMEOUT (GateDeadline): 门禁检查或锁等待超时，当前操作被拒绝。'
+                '检查占用进程与环境；环境阻塞不计作实现失败。')
+    if isinstance(exc, WorkspaceIntegrity):
+        return ('Harness² WorkspaceIntegrity: 实验工作区与父任务的绑定或证据校验失败；'
+                '保留失败/UNKNOWN证据，不得切换项目绕过或重放实验。')
+    return ('Harness² GATE_VALIDATION_ERROR (stage=' + stage + ', type=' + type(exc).__name__ + '): '
+            '当前门禁校验未通过，操作未放行。核对请求格式、原生回执与运行环境；'
+            '此错误本身不能证明钩子文件损坏，不要自动重装或清除证据。')
 
 
 def patch_targets(command, cwd):
@@ -423,6 +493,7 @@ def main():
     args = parser.parse_args()
     event = {}
     kind = 'PreToolUse'
+    stage = 'request'
     def deadline(signum, frame):
         raise GateDeadline('Internal gate deadline')
     try:
@@ -436,14 +507,23 @@ def main():
         require(kind in ('UserPromptSubmit', 'PreToolUse', 'PostToolUse', 'Stop'))
         for key in ('session_id', 'turn_id'):
             require(isinstance(event.get(key), str) and 1 <= len(event[key]) <= 300)
+        stage = 'runtime'
         engine_path = Path(args.engine) if args.engine else Path(__file__).with_name('harness2_local.py')
+        try:
+            gate_digest = sha(Path(__file__).read_bytes())
+            engine_digest = sha(engine_path.read_bytes())
+        except OSError as exc:
+            raise RuntimeIntegrity('RUNTIME_FILE_UNAVAILABLE') from exc
         if args.expect_self_sha:
-            require(sha(Path(__file__).read_bytes()) == args.expect_self_sha)
+            if gate_digest != args.expect_self_sha:
+                raise RuntimeIntegrity('GATE_HASH_MISMATCH')
         if args.expect_engine_sha:
-            require(sha(engine_path.read_bytes()) == args.expect_engine_sha)
+            if engine_digest != args.expect_engine_sha:
+                raise RuntimeIntegrity('ENGINE_HASH_MISMATCH')
         spec = importlib.util.spec_from_file_location('harness2_gate_engine', engine_path)
         engine = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(engine)
+        stage = 'receipt'
         session = sha(event['session_id'].encode()); turn = sha(event['turn_id'].encode())
         base = no_links(home_path() / 'harness2-local/hook-gates' / session)
         base.mkdir(parents=True, mode=0o700, exist_ok=True)
@@ -456,18 +536,21 @@ def main():
                 state = read_state(path, session, turn)
             else:
                 state = {'schema': 1, 'session': session, 'turn': turn, 'created_at': now(), 'projects': {}}
+            stage = 'dispatch'
             output = handle(engine, event, state)
             receipt_event = {'event': kind, 'tool': event.get('tool_name'), 'at': now(),
+                'gate_sha256': gate_digest, 'engine_sha256': engine_digest,
                 'workspace_run': state.get('workspace_run'),
                 'decision': output.get('hookSpecificOutput', {}).get('permissionDecision', output.get('decision', 'continue'))}
             state.setdefault('events', []).append(receipt_event)
             require(len(state['events']) <= 4096)
+            stage = 'persist'
             atomic(path, state)
         print(json.dumps(output, ensure_ascii=False))
         return 0
     except Exception as exc:
         # Ordinary hook errors are fail-open in Codex. Return a valid explicit deny.
-        reason = 'Harness² hook cannot verify the current assessment (' + type(exc).__name__ + '); no business tool may proceed. Restore the reviewed hook and reassess.'
+        reason = failure_reason(exc, stage)
         print(json.dumps(deny(kind, reason), ensure_ascii=False))
         if kind == 'PostToolUse':
             return 0

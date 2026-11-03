@@ -21,6 +21,7 @@ An independent, local-first Harness² method adapter for Codex: propose, probe, 
 - 独立最终验证后采纳组合方案，或在没有增益时保留通过的原方案。
 - v0.3 将轻量任务元数据和锁移到 Codex 的项目隔离 sidecar，评估不改业务工作树；完整实验与经验仍保存在本项目 `.harness2/`。
 - v0.4.1 提供可选 Cognee/Enola 外置快照适配器，保留真实项目和 dataset 身份，避免自动代码索引刷新业务目录中的 `.enola`。旧缓存与失败记录保留。
+- v0.4.2 明确项目目录与 Git 根身份，区分目录参数、运行文件、回执和超时错误，避免把目录选择问题误报为钩子损坏；回执附带实际运行文件指纹。
 - 保留 v0.2.1 应用补丁后的显式验证收尾；未经验证的变更仍会阻断，不自动写入永久记忆。
 
 ## 环境
@@ -166,6 +167,12 @@ python3 plugins/harness2-local/scripts/configure_forced_hooks.py \
 更新插件后应重新运行安装／信任并新开会话；不要直接改已部署副本。
 本版在桌面捆绑 Codex `0.166.0-alpha.5.1` 实测，需要支持对应生命周期和 `hooks/list` 的宿主。
 使用明确的 Git 根目录或非 Git 项目目录，且 `CODEX_HOME` 必须在业务项目之外。
+v0.4.2 要求原生 `project` 为具体已有目录：禁止 HOME 及其父目录、CODEX_HOME
+及其父/子目录；Git 项目用仓库根目录，实验候选用绑定的父项目。
+聊天 cwd 为 HOME 时仍可显式选择有效项目，并在命令上设置相应 `workdir`。
+`PROJECT_SELECTION_REQUIRED` 应纠正目录后重取同目标回执，不应据此重装或绕过门禁。
+本版已完成 143 项源码回归及既有本机安装验证；两项模型错误注入未执行预设错误，
+原未通过结果仍保留。见 [v0.4.2 验收与边界](docs/VALIDATION-0.4.2.md)。
 
 这是受支持 Codex 工具路径上的门禁，**不是 OS 安全沙箱**。已有 `write_stdin` 会话
 不会再次触发 Pre；同步 prompt intake 在模型继续前记录轻量评估。hosted/部分专用路径、

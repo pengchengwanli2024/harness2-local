@@ -1,0 +1,86 @@
+{
+  "schema": "harness2-public-validation-v1",
+  "version": "0.4.2",
+  "public_preparation_date": "2026-11-03",
+  "local_validation_date": "2026-11-02",
+  "local_installed_version": "0.4.2+codex.20261102",
+  "scope": "Public-source regression and retained local source/installed-runtime/fresh-desktop normal-execution evidence; no new native-host fault-injection claim.",
+  "source_regressions": {
+    "passed": true,
+    "count": 143,
+    "source_hashes_frozen": true
+  },
+  "installed_runtime_regressions": {
+    "passed": true,
+    "count": 29,
+    "synthetic_lifecycle_events": true,
+    "runtime_unchanged": true
+  },
+  "native_installation": {
+    "four_owned_hooks_trusted_and_enabled": true,
+    "runtime_hashes": {
+      "gate.py": "6af634bea348621273f2dec11e929ef952bd61edcdd9b6b6d26d7f363e6559af",
+      "harness2_local.py": "2f61057de63d8a32f0f93fdd6da6f8d91a75df9a157726c79d16a28837e201f5"
+    }
+  },
+  "fresh_desktop_normal_execution": {
+    "verified_sessions": 2,
+    "new_runtime_fingerprints_observed": true,
+    "native_context_assess_ordered": true,
+    "ordinary_commands_allowed": true,
+    "fixture_unchanged": true,
+    "experiments_created": false
+  },
+  "preservation": {
+    "foreign_hooks_unchanged": true,
+    "unrelated_config_unchanged": true,
+    "previous_runtime_bundles_intact": true,
+    "installed_cache_matches_source": {
+      "hooks/gate.py": true,
+      "server/harness2_local.py": true,
+      "skills/harness2/SKILL.md": true,
+      "plugin.json": true,
+      ".codex-plugin/plugin.json": true
+    },
+    "source_version": "0.4.2+codex.20261102"
+  },
+  "verification_limits": {
+    "installation_time_maintenance_chat_used_old_snapshot": true,
+    "existing_chats_need_reload_or_new_session": true,
+    "model_driven_invalid_scope_injection": "Not observed: both strict combined checks remain not passed; models selected valid directories instead.",
+    "negative_scope_and_recovery": "Verified against exact installed pinned bytes with isolated synthetic lifecycle events and real engine state; not native-host fault injection.",
+    "prior_fourway_acceptance": "Retained unchanged for its originally tested version; not rerun or relabeled as v0.4.2 desktop four-way acceptance.",
+    "no_os_isolation_or_universal_quality_gain_claim": true
+  },
+  "independent_local_review": "passed after HOME-external-state and native Git-root findings addressed",
+  "retained_failures": {
+    "initial_local_regression": "One timeout-diagnostic compatibility assertion failed before correction; original log retained.",
+    "strict_model_driven_combined_results": [
+      "not passed",
+      "not passed"
+    ],
+    "original_logs_and_private_traces_retained": true
+  },
+  "public_package": {
+    "archive": "dist/harness2-local-0.4.2.zip",
+    "sha256": "e8cb9ea447ed53799ccf04a466deb4bc6206560341a7d9ab61f600c8cfc838f4",
+    "file_count": 23,
+    "version": "0.4.2",
+    "testzip_passed": true,
+    "source_equivalence": "All files identical to installed local implementation, except normalized public manifest versions."
+  },
+  "runtime_sha256": {
+    "gate.py": "6af634bea348621273f2dec11e929ef952bd61edcdd9b6b6d26d7f363e6559af",
+    "harness2_local.py": "2f61057de63d8a32f0f93fdd6da6f8d91a75df9a157726c79d16a28837e201f5"
+  },
+  "private_evidence_published": false,
+  "provenance": {
+    "local_machine_summary_sha256": "39087fcd356f72e8b6da613c1770b7c59da571ac588db4b11b2ceb8fce519566",
+    "public_manifest_normalization_only": true
+  },
+  "public_checkout_regressions": {
+    "passed": true,
+    "count": 143,
+    "source_and_tests_unchanged_during_check": true
+  }
+}

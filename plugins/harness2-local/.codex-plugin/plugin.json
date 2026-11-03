@@ -1,6 +1,6 @@
 {
   "name": "harness2-local",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Evidence-guided Propose–Probe–Compose workflows for local Codex. Independent Harness² method adapter.",
   "author": {
     "name": "Local Tools"

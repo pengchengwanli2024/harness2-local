@@ -22,6 +22,21 @@ and `h2_assess` success results in this turn/project. `PostToolUse` verifies the
 turns cannot grant this native receipt. A new/steered goal invalidates old receipts.
 A missing/broken receipt is a blocker, not permission to bypass the hook.
 
+Select a concrete existing work directory before native kickoff. HOME and its ancestors,
+CODEX_HOME, and every ancestor or descendant of CODEX_HOME are invalid project
+roots. A HOME-based chat can still assess an explicitly selected valid project;
+set that same `workdir` on commands instead of relying on the chat cwd.
+Git projects must use the repository root as native `project`; commands can use
+its subdirectories. Experiment candidates use their bound parent project for
+native calls. These identities are checked before the engine writes metadata.
+For local maintenance or network diagnostics without a code repository, use the selected
+existing work directory; do not assess HOME or silently create/remap a project.
+`PROJECT_SELECTION_REQUIRED` is a caller-scope error: correct the directory and
+repeat native context/assessment for the same goal. It is not evidence of hook
+corruption. `RUNTIME_INTEGRITY_ERROR` and `RECEIPT_INTEGRITY_ERROR` remain blockers;
+retain the old bundle/receipt and failure evidence. Do not change expected hashes,
+delete receipts, disable hooks, or use CLI as a substitute for a native receipt.
+
 For `decision=skip`, use ordinary development and feedback; `h2_start` is denied.
 For `start`, before a bound run exists, use single `cat`/`rg --no-config`/`ls`/`pwd` reads (no custom shell/environment/login startup) and
 `apply_patch` **only** inside `.harness2-preflight/<task_key>/` to prepare read-only

@@ -114,6 +114,16 @@ python3 /path/to/plugin/server/harness2_local.py --call h2_status < request.json
 PreToolUse、PostToolUse、Stop；仅信任本插件四项，保留其他 handlers 与信任设置。
 引擎和门禁部署为哈希固定副本，启动时核对内容，源码更新须重新安装和信任新定义。
 
+目录与诊断：聊天可以从HOME开启，但原生`project`与命令`workdir`必须显式选择具体已有
+工作目录；不能选择CODEX_HOME及其父目录或子目录。非Git的本机维护/网络诊断也使用
+已选工作目录，不自动创建项目或扫描HOME。`PROJECT_SELECTION_REQUIRED`表示目录参数
+需要纠正，不表示钩子损坏；纠正后在同一目标下重新取得原生context/assess即可。
+Git原生`project`必须使用仓库根目录，实验候选必须使用已绑定的父项目根目录；
+普通命令仍可在仓库子目录或已验证的候选子目录执行，不另建任务身份和sidecar。
+`RUNTIME_INTEGRITY_ERROR`表示固定运行文件校验失败，`RECEIPT_INTEGRITY_ERROR`表示收据
+损坏或不合法；二者继续阻断，保留旧包和原始证据，通过受审阅安装流程处理。
+未知错误只返回阶段与异常类型，不输出原始工具输入、路径或凭据，也不一律要求重装。
+
 开工 hook 实际记录 context/standard intake assessment，再要求当轮当项目的原生
 语义 context/assess 成功回执；未评估工具被拒，skip 任务不能启动四路实验。
 新目标与新turn不能借用旧回执，原失败与UNKNOWN不重放。复杂任务的启动前准备仅能

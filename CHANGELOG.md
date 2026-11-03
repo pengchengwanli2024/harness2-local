@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.2 — 2026-11-03
+
+- Reject HOME and its ancestors, and CODEX_HOME and its ancestors/descendants,
+  as project roots. HOME-based chats can still select a concrete valid project.
+- Require native Git calls to use the repository root and candidate calls to
+  use the bound parent project. Reject invalid identities before engine writes;
+  ordinary commands can still run in verified project subdirectories.
+- Distinguish actionable project-selection errors from runtime integrity,
+  receipt integrity and gate timeouts. Unknown failures expose only stage/type,
+  retain fail-closed behavior and never echo private inputs or demand reinstall
+  solely because a validation failed.
+- Record gate/engine fingerprints in lifecycle receipts. Preserve existing
+  task identities, failures, UNKNOWN evidence and immutable runtime bundles.
+- Include 143 regression tests and scoped validation notes. The prior local
+  installation used build metadata `0.4.2+codex.20261102`; public manifests use
+  `0.4.2`, with identical gate/engine bytes. Existing sessions require reload.
+
 ## 0.4.1 — 2026-11-02
 
 - Add an optional, content-pinned Cognee Enola adapter. Generate immutable,
