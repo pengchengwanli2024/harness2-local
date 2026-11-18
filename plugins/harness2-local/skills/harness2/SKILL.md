@@ -1,15 +1,33 @@
 ---
 name: harness2
-description: "Assess every workspace file edit, including README/docs/config and specified-file-only small changes, using h2_context then h2_assess before writing. Simple tasks skip four-way experiments, never assessment. Start Harness2 for complex tasks or two consecutive real implementation failures; reuse verified project experience. Also use when Harness2 or Harness² is requested."
+description: "Assess every workspace file edit with h2_context then h2_assess; complex tasks or two consecutive real failures start the bounded four-candidate Harness² comparison; reuse verified project experience. Also use when Harness2 / Harness² is requested."
 ---
 
-# Harness² for local Codex
+# Harness² for local agents (Codex / Hermes)
 
 Apply Propose–Probe–Compose to the **execution harness** around the current
 model, then reflect across tasks. Use the user's language (Chinese by default).
 This plugin is an independent method adapter, not an official Google product
 or the upstream benchmark runner. Runtime tools never change model weights or global
-Codex instructions. Explicit opt-in configuration scripts act only when requested. Load [method mapping](references/method.md) for details.
+host instructions. Explicit opt-in configuration scripts act only when requested. Load [method mapping](references/method.md) for details.
+
+## Host adaptation (Hermes)
+
+Hermes has no lifecycle hooks, so nothing can force the gate: the model keeps it
+honestly. Same tools, same evidence rules. Set `HARNESS2_HOME` (or run inside
+`HERMES_HOME`) so the sidecar stays host-owned; `CODEX_HOME` remains the default.
+
+| Concern | Codex | Hermes |
+|---|---|---|
+| Gate | `PreToolUse` denies unassessed writes | skill self-discipline + pre-delivery check |
+| Auto intake | `UserPromptSubmit` records intake | none; call `h2_context`/`h2_assess` explicitly |
+| State root | `~/.codex/harness2-local` | `~/.hermes/harness2-local` via `HARNESS2_HOME` |
+| Patch tool | `apply_patch` | `patch` / `write_file` |
+| Executor isolation | Codex subagents | `delegate_task` |
+
+Everything below stays in force for both hosts; read `USER_PROMPT`/hook
+sentences on Hermes as "do this yourself before the first business write".
+
 
 ## Automatic kickoff and failure escalation
 

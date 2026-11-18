@@ -167,10 +167,29 @@ class AuditStorageTests(unittest.TestCase):
 
     def test_sidecar_inside_project_is_rejected_without_creating_any_project_file(self):
         before = tree(self.project)
-        with patch.dict(os.environ, {"CODEX_HOME": str(self.project / "nested-codex-home")}):
-            with self.assertRaises(ValueError):
-                self.fixture.assess(complexity="simple", signals=[])
+        # 每个宿主变量单独生效时，都不许把 sidecar 写进业务目录
+        for var in ("HARNESS2_HOME", "HERMES_HOME", "CODEX_HOME"):
+            with self.subTest(host_var=var):
+                env = {name: "" for name in ("HARNESS2_HOME", "HERMES_HOME", "CODEX_HOME")}
+                env[var] = str(self.project / f"nested-{var.lower()}")
+                with patch.dict(os.environ, env):
+                    with self.assertRaises(ValueError):
+                        self.fixture.assess(complexity="simple", signals=[])
         self.assertEqual(tree(self.project), before)
+
+    def test_host_home_prefers_explicit_variable_then_hermes_then_codex(self):
+        """宿主状态根目录按 HARNESS2_HOME → HERMES_HOME → CODEX_HOME 解析。"""
+        homes = {"HARNESS2_HOME": str(self.project / "h2-home"),
+                 "HERMES_HOME": str(self.project / "hermes-home"),
+                 "CODEX_HOME": str(self.project / "codex-home")}
+        with patch.dict(os.environ, homes):
+            self.assertEqual(engine.agent_home(), (Path(homes["HARNESS2_HOME"]), "HARNESS2_HOME"))
+        with patch.dict(os.environ, {**homes, "HARNESS2_HOME": ""}):
+            self.assertEqual(engine.agent_home(), (Path(homes["HERMES_HOME"]), "HERMES_HOME"))
+        with patch.dict(os.environ, {"HARNESS2_HOME": "", "HERMES_HOME": "", "CODEX_HOME": ""}):
+            resolved, name = engine.agent_home()
+            self.assertFalse(str(resolved).startswith(str(self.project)))
+            self.assertIn(name, {"HERMES_HOME", "CODEX_HOME"})
 
     def test_existing_legacy_lock_is_only_read_and_no_new_project_lock_is_created(self):
         store = self.project / ".harness2"

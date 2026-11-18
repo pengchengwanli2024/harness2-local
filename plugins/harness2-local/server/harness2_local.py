@@ -101,15 +101,32 @@ def project_root(project):
     return raw.resolve()
 
 
+def agent_home():
+    """解析宿主状态根目录：优先显式变量，其次已存在的宿主目录，最后回退 ~/.codex。
+
+    支持 HARNESS2_HOME、HERMES_HOME、CODEX_HOME 三种宿主命名，避免把
+    Hermes 等非 Codex 宿主的 sidecar 写进 ~/.codex。
+    """
+    for name in ("HARNESS2_HOME", "HERMES_HOME", "CODEX_HOME"):
+        value = os.environ.get(name)
+        if value:
+            return Path(value).expanduser(), name
+    for name, path in (("HERMES_HOME", Path.home() / ".hermes"),
+                       ("CODEX_HOME", Path.home() / ".codex")):
+        if path.is_dir():
+            return path, name
+    return Path.home() / ".codex", "CODEX_HOME"
+
+
 def metadata_store(store):
     """Compute the external project namespace without touching the business tree."""
-    home = Path(os.environ.get("CODEX_HOME", str(Path.home() / ".codex"))).expanduser()
-    require(home.is_absolute(), "CODEX_HOME must be an absolute directory")
+    home, home_var = agent_home()
+    require(home.is_absolute(), f"{home_var} must be an absolute directory")
     project = store.parent
     key = digest(str(project).encode())
     external = child(home, f"harness2-local/projects/{key}")
     require(not external.resolve().is_relative_to(project.resolve()),
-            "CODEX_HOME sidecar must be outside the business project")
+            f"{home_var} sidecar must be outside the business project")
     return external
 
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.4 — 未发布 / Unreleased
+
+- Add a Hermes host adapter: `HERMES.md` documents the copy-skill install and the
+  `hermes mcp add` registration that exposes the same 10 `h2_*` tools.
+- `server/harness2_local.py` now resolves the host state root in the order
+  `HARNESS2_HOME` → `HERMES_HOME` → `CODEX_HOME` → `~/.codex`, so a Hermes install
+  keeps its sidecar under `~/.hermes/harness2-local` instead of writing into
+  `~/.codex`. Codex behaviour is unchanged when `CODEX_HOME` is set or when neither
+  Hermes variable exists.
+- `skills/harness2/SKILL.md` gains a host-adaptation section (gate, intake, state
+  root, patch tool, executor isolation) and a shorter description. The gate,
+  method and evidence rules are unchanged; Hermes has no lifecycle hooks, so the
+  skill states that the gate is model-kept rather than enforced.
+- Tests cover the new precedence and the per-variable sidecar rejection (152 total).
+
 ## 0.4.3 — 2026-11-18
 
 - Add a DeepSeek Harness (DSH) bundle to the same plugin directory: `package.json`,
