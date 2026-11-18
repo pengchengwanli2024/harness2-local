@@ -1,0 +1,34 @@
+{
+  "name": "dsh-harness2-local",
+  "version": "0.4.3",
+  "private": true,
+  "type": "module",
+  "description": "Harness² Local for DeepSeek Harness: the harness2 skill and ten local MCP tools for evidence-guided Propose–Probe–Compose comparisons.",
+  "license": "Apache-2.0",
+  "icon": "./assets/icon.svg",
+  "exports": {
+    ".": "./dsh/index.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./assets/icon.svg",
+    "./mcp-server": "./server/harness2_local.py"
+  },
+  "files": [
+    "dsh",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "assets",
+    "server",
+    "skills",
+    "references",
+    "integrations",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  }
+}

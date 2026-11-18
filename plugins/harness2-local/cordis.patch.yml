@@ -1,0 +1,18 @@
+# DeepSeek Harness bundle layer. Codex reads plugin.json, .mcp.json and the hooks instead; nothing here affects it.
+- insert:
+    # Registers skills/harness2 with the DSH notes in dsh/skills.json.
+    - id: harness2-local-skills
+      name: dsh-harness2-local
+    # The same stdlib MCP server Codex starts. Its path is resolved from the installed package, so the bundle works
+    # from a linked checkout and from a packed install alike.
+    - id: mcp-harness2-local
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: harness2-local
+        transport: stdio
+        command: python3
+        args:
+          - !!js "process.getBuiltinModule('node:module').createRequire(get('profileContext').dir + '/package.json').resolve('dsh-harness2-local/mcp-server')"
+          - --stdio
+        toolCallTimeoutMs: 120000
+        failOnStartupError: false

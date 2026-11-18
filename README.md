@@ -21,6 +21,7 @@ An independent, local-first Harness² method adapter for Codex: propose, probe, 
 - 独立最终验证后采纳组合方案，或在没有增益时保留通过的原方案。
 - v0.3 将轻量任务元数据和锁移到 Codex 的项目隔离 sidecar，评估不改业务工作树；完整实验与经验仍保存在本项目 `.harness2/`。
 - v0.4.1 提供可选 Cognee/Enola 外置快照适配器，保留真实项目和 dataset 身份，避免自动代码索引刷新业务目录中的 `.enola`。旧缓存与失败记录保留。
+- v0.4.3 增加 DeepSeek Harness bundle：同一目录可直接安装到 DSH，加载 `harness2` 技能与同一 MCP 服务器；DSH 无生命周期钩子，不提供强制门禁。
 - v0.4.2 明确项目目录与 Git 根身份，区分目录参数、运行文件、回执和超时错误，避免把目录选择问题误报为钩子损坏；回执附带实际运行文件指纹。
 - 保留 v0.2.1 应用补丁后的显式验证收尾；未经验证的变更仍会阻断，不自动写入永久记忆。
 
@@ -133,6 +134,27 @@ python3 plugins/harness2-local/scripts/configure_session_gate.py \
 `HARNESS2_DEVELOPER_GATE` 标记块，保留其它配置原字节和字段，备份原文件；
 已有其它所有者的 `developer_instructions` 或歧义标记时拒绝覆盖。此步骤不改变工具审批。
 它是附加指令，仍受平台和用户授权约束，仍不是强制 hook；新对话需验证真实调用。
+
+## 在 DeepSeek Harness 中使用（v0.4.3）
+
+同一个插件目录也是一个 DeepSeek Harness（DSH）bundle，不需要构建或额外依赖：
+
+```text
+在 DSH 中：插件 → 添加插件 → 选择本仓库的 plugins/harness2-local 目录
+或让智能体调用 plugin_manager install_bundle，target 为该目录的绝对路径
+```
+
+安装后 DSH 会加载 `harness2` 技能，并用同一份标准库 MCP 服务器提供
+`mcp__harness2-local__h2_context` 等十个工具。服务器路径从已安装的包解析，
+不写入本机绝对路径。任务元数据仍在 `$CODEX_HOME`（默认 `~/.codex`）下的
+`harness2-local/projects/`，因此 Codex 与 DSH 对同一项目共用一份任务历史；
+实验仍保存在项目的 `.harness2/`。
+
+与 Codex 的差别：DSH 没有 `UserPromptSubmit`、`PreToolUse`、`PostToolUse`
+生命周期钩子，所以这里**没有强制门禁和原生回执**，技能只在复杂任务、连续两轮
+实现失败或用户点名时使用。这些差别写在 `dsh/skills.json` 的宿主说明里，加载技能时
+拼在正文前面；`skills/harness2/SKILL.md` 本身不变。`scripts/` 与 `hooks/` 下的
+配置脚本只改 Codex，不用于 DSH。
 
 ## 强制开工门禁（v0.4，可选安装）
 

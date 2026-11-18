@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Harness² Local",
+    "description": "提供 harness2 技能和十个本地 MCP 工具（h2_context、h2_assess、h2_feedback、h2_start、h2_status、h2_propose、h2_probe、h2_adopt、h2_reflect、h2_recall）。在复杂任务或连续两次实现失败后说“用 Harness2”，即可在同一冻结检查下比较原方案、通用候选、领域候选和组合方案，并把证据与经验留在项目内。工具只记录证据，不调用模型、不代替智能体执行。需要 macOS 或 Linux 上的 python3 3.11+。实验保存在 <项目>/.harness2，任务元数据与 Codex 共用 ~/.codex/harness2-local。与 Codex 不同，这里没有钩子强制执行。"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Harness² Local",
+    "description": "Adds the harness2 skill and ten local MCP tools (h2_context, h2_assess, h2_feedback, h2_start, h2_status, h2_propose, h2_probe, h2_adopt, h2_reflect, h2_recall). Ask for “Harness2” on a complex task, or after two failed attempts, to compare the original approach with a general, a domain and a composed candidate under one frozen checker, and keep the evidence and the lesson in the project. The tools record evidence; they call no model and run no agent. Requires python3 3.11+ on macOS or Linux. Experiments are stored in <project>/.harness2; task metadata is shared with Codex under ~/.codex/harness2-local. Unlike in Codex, nothing is enforced by hooks."
+  }
+}

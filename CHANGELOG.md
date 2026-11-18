@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.3 — 2026-11-18
+
+- Add a DeepSeek Harness (DSH) bundle to the same plugin directory: `package.json`,
+  `cordis.patch.yml`, a dependency-free skill provider in `dsh/`, and English and
+  Chinese display metadata. DSH loads the `harness2` skill and starts the same
+  stdlib MCP server, so its tools appear as `mcp__harness2-local__h2_*`.
+- The DSH skill view prepends host notes from `dsh/skills.json` and uses a
+  description that routes only complex tasks, repeated failures and explicit
+  requests. `skills/harness2/SKILL.md` is unchanged; Codex reads it as before.
+- DSH has no lifecycle hooks, so nothing is enforced there; the notes say so.
+  Gate, engine, hooks and Codex configuration scripts are byte-identical to 0.4.2.
+- Add 8 tests for the bundle manifest, patch, locale files and provider (151 total).
+  The provider tests need Node.js 22+ and are skipped without it.
+
 ## 0.4.2 — 2026-11-03
 
 - Reject HOME and its ancestors, and CODEX_HOME and its ancestors/descendants,

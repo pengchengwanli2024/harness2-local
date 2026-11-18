@@ -132,3 +132,8 @@ Git原生`project`必须使用仓库根目录，实验候选必须使用已绑�
 这不是 OS 安全沙箱。Codex部分专用/hosted路径不经过相同hooks，已有write_stdin会话
 不再次经过Pre；同步开工轻量评估覆盖模型继续执行前的记录。用户关闭hooks、宿主杀死进程
 或改变信任后的未加载状态不能声称仍受强制保护；需在新会话核对实际执行，而不只看配置。
+
+DeepSeek Harness：本目录同时是 DSH bundle（`package.json`、`cordis.patch.yml`、`dsh/`、`locale/`）。
+在 DSH 的“插件 → 添加插件”中选择本目录即可加载 `harness2` 技能和同一 MCP 服务器，工具名为
+`mcp__harness2-local__h2_*`。DSH 没有生命周期钩子，不提供强制门禁或原生回执；宿主差别见
+`dsh/skills.json`，技能正文 `skills/harness2/SKILL.md` 不变。
